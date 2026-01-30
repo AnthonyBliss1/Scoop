@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { prefersReducedMotion } from "svelte/motion";
   import { Method, KV, App, Scoop, Response } from "../bindings/changeme";
 
   let scoop: Scoop | null = $state(null);
@@ -8,6 +7,11 @@
   let headers = $state(new Map<string, string>([]));
   let queryParams = $state(new Map<string, string>([]));
   let response: Response | undefined = $state<Response>();
+
+  type TType = "raw" | "key-value" | "json";
+  let headerTType: TType = $state("raw");
+  let qParamTType: TType = $state("raw");
+  let bodyTType: TType = $state("json");
 
   function methodColor(method: string): string {
     switch (method) {
@@ -77,13 +81,89 @@
       >
     </div>
 
-    <!-->Request Headers and Query Params<-->
+    <!-->Request Headers, Query Params, and Request Body<-->
     <div class="flex-rows flex gap-10">
+      <!-->Request Headers<-->
       <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
-        <p class="text-sm underline underline-offset-3">Request Headers</p>
+        <div class="flex w-full flex-row justify-between">
+          <p class="text-sm underline underline-offset-3">Request Headers</p>
+
+          <!--Radio button group for text editing option-->
+          <div class="flex items-center gap-4">
+            <label for="header-raw" class="inline-flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                id="header-raw"
+                value="raw"
+                class="align-middle"
+                bind:group={headerTType}
+              />
+              raw
+            </label>
+            <label for="header-key-value" class="inline-flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                id="header-key-value"
+                value="key-value"
+                class="align-middle"
+                bind:group={headerTType}
+              />
+              key-value
+            </label>
+          </div>
+        </div>
       </div>
+
+      <!-->Query Parameters<-->
       <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
-        <p class="text-sm underline underline-offset-3">Query Parameters</p>
+        <div class="flex w-full flex-row justify-between">
+          <p class="text-sm underline underline-offset-3">Query Parameters</p>
+
+          <!--Radio button group for text editing option-->
+          <div class="flex items-center gap-4">
+            <label for="qp-raw" class="inline-flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                id="qp-raw"
+                value="raw"
+                class="align-middle"
+                bind:group={qParamTType}
+              />
+              raw
+            </label>
+            <label for="qp-key-value" class="inline-flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                id="qp-key-value"
+                value="key-value"
+                class="align-middle"
+                bind:group={qParamTType}
+              />
+              key-value
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-->Request Body<-->
+      <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
+        <div class="flex w-full flex-row justify-between">
+          <p class="text-sm underline underline-offset-3">Request Body</p>
+
+          <!--Radio button group for text editing option-->
+          <div class="flex items-center gap-4">
+            <label for="body-json" class="inline-flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                id="body-json"
+                value="json"
+                class="align-middle"
+                bind:group={bodyTType}
+              />
+              JSON
+            </label>
+          </div>
+        </div>
       </div>
     </div>
 
