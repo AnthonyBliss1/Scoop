@@ -58,18 +58,16 @@
   <p class="text-lg text-green-500">Scoop v1.0</p>
 
   <!-->Outer Card<-->
-  <div
-    class="border-border flex max-h-[90vh] min-h-[90vh] max-w-[90vw] min-w-[90vw] flex-col gap-10 rounded-sm border p-10"
-  >
+  <div class="border-border flex h-[90vh] w-[90vw] flex-col gap-10 rounded-sm border p-10">
     <!-->Request Section<-->
-    <div class="flex-rows flex w-full gap-20">
-      <div class="flex flex-row items-center gap-2">
+    <div class="flex-rows flex w-full gap-4">
+      <div class="flex min-w-0 flex-row items-center gap-2">
         <p>Method:</p>
         <input
           placeholder="GET"
           list="reqMethods"
           bind:value={method}
-          class={methodColor(method)}
+          class={`w-full max-w-[8rem] min-w-0 ${methodColor(method)}`}
         />
         <datalist id="reqMethods">
           <option value="GET"></option>
@@ -79,9 +77,9 @@
           <option value="DELETE"></option>
         </datalist>
       </div>
-      <div class="flex flex-row items-center gap-2">
+      <div class="flex min-w-0 flex-1 flex-row items-center gap-2">
         <p>URL:</p>
-        <input placeholder="https://google.com" bind:value={url} />
+        <input class="w-full min-w-0" placeholder="https://google.com" bind:value={url} />
       </div>
       <button
         class="border-border ml-auto items-center rounded-sm border px-3 py-1 hover:cursor-pointer hover:bg-green-400 hover:text-black"
@@ -90,99 +88,101 @@
     </div>
 
     <!-->Request Headers, Query Params, and Request Body<-->
-    <div class="flex-rows flex gap-10">
-      <!-->Request Headers<-->
-      <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
-        <div class="flex w-full flex-row justify-between px-3">
-          <p class="text-sm underline underline-offset-3">Request Headers</p>
+    <div class="min-w-0 overflow-x-auto">
+      <div class="flex flex-nowrap gap-10">
+        <!-->Request Headers<-->
+        <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 shrink-0 rounded-sm border p-2">
+          <div class="flex w-full flex-row justify-between px-3">
+            <p class="text-sm underline underline-offset-3">Request Headers</p>
 
-          <!--Radio button group for text editing option-->
-          <div class="flex items-center gap-4">
-            <label for="header-raw" class="inline-flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                id="header-raw"
-                value="raw"
-                class="align-middle"
-                bind:group={headerTType}
-              />
-              raw
-            </label>
-            <label for="header-key-value" class="inline-flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                id="header-key-value"
-                value="key-value"
-                class="align-middle"
-                bind:group={headerTType}
-              />
-              key-value
-            </label>
+            <!--Radio button group for text editing option-->
+            <div class="flex items-center gap-4">
+              <label for="header-raw" class="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  id="header-raw"
+                  value="raw"
+                  class="align-middle"
+                  bind:group={headerTType}
+                />
+                raw
+              </label>
+              <label for="header-key-value" class="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  id="header-key-value"
+                  value="key-value"
+                  class="align-middle"
+                  bind:group={headerTType}
+                />
+                key-value
+              </label>
+            </div>
           </div>
+          {#if headerTType === "raw"}
+            <RawInput />
+          {:else}
+            <KvInput />
+          {/if}
         </div>
-        {#if headerTType === "raw"}
+
+        <!-->Query Parameters<-->
+        <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 rounded-sm border p-2">
+          <div class="flex w-full flex-row justify-between px-3">
+            <p class="text-sm underline underline-offset-3">Query Parameters</p>
+
+            <!--Radio button group for text editing option-->
+            <div class="flex items-center gap-4">
+              <label for="qp-raw" class="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  id="qp-raw"
+                  value="raw"
+                  class="align-middle"
+                  bind:group={qParamTType}
+                />
+                raw
+              </label>
+              <label for="qp-key-value" class="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  id="qp-key-value"
+                  value="key-value"
+                  class="align-middle"
+                  bind:group={qParamTType}
+                />
+                key-value
+              </label>
+            </div>
+          </div>
+          {#if qParamTType === "raw"}
+            <RawInput />
+          {:else}
+            <KvInput />
+          {/if}
+        </div>
+
+        <!-->Request Body<-->
+        <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 rounded-sm border p-2">
+          <div class="flex w-full flex-row justify-between px-3">
+            <p class="text-sm underline underline-offset-3">Request Body</p>
+
+            <!--Radio button group for text editing option-->
+            <div class="flex items-center gap-4">
+              <label for="body-json" class="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  id="body-json"
+                  value="json"
+                  class="align-middle"
+                  bind:group={bodyTType}
+                />
+                JSON
+              </label>
+            </div>
+          </div>
           <RawInput />
-        {:else}
-          <KvInput />
-        {/if}
-      </div>
-
-      <!-->Query Parameters<-->
-      <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
-        <div class="flex w-full flex-row justify-between px-3">
-          <p class="text-sm underline underline-offset-3">Query Parameters</p>
-
-          <!--Radio button group for text editing option-->
-          <div class="flex items-center gap-4">
-            <label for="qp-raw" class="inline-flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                id="qp-raw"
-                value="raw"
-                class="align-middle"
-                bind:group={qParamTType}
-              />
-              raw
-            </label>
-            <label for="qp-key-value" class="inline-flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                id="qp-key-value"
-                value="key-value"
-                class="align-middle"
-                bind:group={qParamTType}
-              />
-              key-value
-            </label>
-          </div>
         </div>
-        {#if qParamTType === "raw"}
-          <RawInput />
-        {:else}
-          <KvInput />
-        {/if}
-      </div>
-
-      <!-->Request Body<-->
-      <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
-        <div class="flex w-full flex-row justify-between px-3">
-          <p class="text-sm underline underline-offset-3">Request Body</p>
-
-          <!--Radio button group for text editing option-->
-          <div class="flex items-center gap-4">
-            <label for="body-json" class="inline-flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                id="body-json"
-                value="json"
-                class="align-middle"
-                bind:group={bodyTType}
-              />
-              JSON
-            </label>
-          </div>
-        </div>
-        <RawInput />
       </div>
     </div>
 

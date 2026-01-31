@@ -22,8 +22,12 @@
         <span class="w-10 shrink-0 p-2 text-right leading-5 select-none">{i + 1}</span>
 
         <div class="flex flex-1 gap-5 p-2">
-          <input class="border-border border px-1" placeholder="Key" bind:value={row.key} />
-          <input class="border-border border px-1" placeholder="Value" bind:value={row.value} />
+          <input class="border-border w-full border px-1" placeholder="Key" bind:value={row.key} />
+          <input
+            class="border-border w-full border px-1"
+            placeholder="Value"
+            bind:value={row.value}
+          />
         </div>
       </div>
     {/each}
