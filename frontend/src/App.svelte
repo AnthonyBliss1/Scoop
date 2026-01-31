@@ -1,4 +1,6 @@
 <script lang="ts">
+  import KvInput from "$lib/components/kv-input.svelte";
+  import RawInput from "$lib/components/raw-input.svelte";
   import { Method, KV, App, Scoop, Response } from "../bindings/changeme";
 
   let scoop: Scoop | null = $state(null);
@@ -9,9 +11,15 @@
   let response: Response | undefined = $state<Response>();
 
   type TType = "raw" | "key-value" | "json";
+
   let headerTType: TType = $state("raw");
+  let headerRawContent: string = $state("");
+
   let qParamTType: TType = $state("raw");
+  let qParamRawContent: string = $state("");
+
   let bodyTType: TType = $state("json");
+  let bodyRawContent: string = $state("");
 
   function methodColor(method: string): string {
     switch (method) {
@@ -85,7 +93,7 @@
     <div class="flex-rows flex gap-10">
       <!-->Request Headers<-->
       <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
-        <div class="flex w-full flex-row justify-between">
+        <div class="flex w-full flex-row justify-between px-3">
           <p class="text-sm underline underline-offset-3">Request Headers</p>
 
           <!--Radio button group for text editing option-->
@@ -112,11 +120,16 @@
             </label>
           </div>
         </div>
+        {#if headerTType === "raw"}
+          <RawInput />
+        {:else}
+          <KvInput />
+        {/if}
       </div>
 
       <!-->Query Parameters<-->
       <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
-        <div class="flex w-full flex-row justify-between">
+        <div class="flex w-full flex-row justify-between px-3">
           <p class="text-sm underline underline-offset-3">Query Parameters</p>
 
           <!--Radio button group for text editing option-->
@@ -143,11 +156,16 @@
             </label>
           </div>
         </div>
+        {#if qParamTType === "raw"}
+          <RawInput />
+        {:else}
+          <KvInput />
+        {/if}
       </div>
 
       <!-->Request Body<-->
       <div class="border-border min-h-[25vh] w-full flex-1 rounded-sm border p-2">
-        <div class="flex w-full flex-row justify-between">
+        <div class="flex w-full flex-row justify-between px-3">
           <p class="text-sm underline underline-offset-3">Request Body</p>
 
           <!--Radio button group for text editing option-->
@@ -164,6 +182,7 @@
             </label>
           </div>
         </div>
+        <RawInput />
       </div>
     </div>
 
