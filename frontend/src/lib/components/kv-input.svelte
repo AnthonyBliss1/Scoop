@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { KV } from "bindings/changeme";
+  import { onDestroy, onMount } from "svelte";
 
-  let rows: KV[] = $state([{ key: "", value: "" }]);
+  let { rawContent = $bindable<string>("") } = $props<{ rawContent: string }>();
+  let rows: KV[] = $state([]);
 
   let scroller: HTMLDivElement;
 
@@ -13,6 +15,48 @@
     if (rows.length === 1) return;
     rows = rows.filter((_, idx) => idx !== 1);
   }
+
+  function rawToKV() {
+    if (rawContent === "") {
+      rows.push({ key: "", value: "" });
+      return;
+    }
+
+    const r: string[] = rawContent.split("\n");
+
+    for (const row of r) {
+      if (row === "") return;
+
+      const item: string[] = row.split(":");
+
+      const key: string = item[0];
+      const val: string = item[1];
+
+      const newRow: KV = { key: key, value: val };
+      rows.push(newRow);
+    }
+  }
+
+  function kvToRaw() {
+    let newContent: string = "";
+
+    for (const row of rows) {
+      if (row.key === "" && row.value === "") return;
+
+      const line: string = row.key + ":" + row.value + "\n";
+      newContent = newContent + line;
+    }
+
+    rawContent = newContent;
+  }
+
+  onMount(() => {
+    rawToKV();
+  });
+
+  onDestroy(() => {
+    kvToRaw();
+  });
 </script>
 
 <div class="bg-accent m-3 flex h-64 flex-col overflow-hidden rounded-md border text-sm">

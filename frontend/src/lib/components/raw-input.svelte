@@ -1,5 +1,5 @@
 <script lang="ts">
-  let content = $state("");
+  let { content = $bindable<string>("") } = $props<{ content: string }>();
   let numOfLines = $derived(Math.max(1, content.split("\n").length));
 
   let ta: HTMLTextAreaElement;

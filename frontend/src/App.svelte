@@ -5,7 +5,7 @@
 
   let scoop: Scoop | null = $state(null);
   let method: Method = $state(Method.Empty);
-  let url = $state("");
+  let url: string = $state("");
   let headers = $state(new Map<string, string>([]));
   let queryParams = $state(new Map<string, string>([]));
   let response: Response | undefined = $state<Response>();
@@ -120,9 +120,9 @@
             </div>
           </div>
           {#if headerTType === "raw"}
-            <RawInput />
+            <RawInput bind:content={headerRawContent} />
           {:else}
-            <KvInput />
+            <KvInput bind:rawContent={headerRawContent} />
           {/if}
         </div>
 
@@ -156,9 +156,9 @@
             </div>
           </div>
           {#if qParamTType === "raw"}
-            <RawInput />
+            <RawInput bind:content={qParamRawContent} />
           {:else}
-            <KvInput />
+            <KvInput bind:rawContent={qParamRawContent} />
           {/if}
         </div>
 
@@ -181,7 +181,7 @@
               </label>
             </div>
           </div>
-          <RawInput />
+          <RawInput bind:content={bodyRawContent} />
         </div>
       </div>
     </div>
