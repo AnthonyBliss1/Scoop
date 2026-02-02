@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 type Method string
@@ -30,10 +33,12 @@ type Request struct {
 }
 
 type Response struct {
-	Status     string `json:"status"`
-	StatusCode int    `json:"status_code"`
-	Headers    []KV   `json:"headers"`
-	Body       string `json:"body"`
+	Status      string `json:"status"`
+	StatusCode  int    `json:"status_code"`
+	Headers     []KV   `json:"headers"`
+	Body        string `json:"body"`
+	Duration    int64  `json:"duration"`
+	ContentType string `json:"content_type"`
 }
 
 type Scoop struct {
@@ -41,13 +46,13 @@ type Scoop struct {
 	Response Response `json:"response"`
 }
 
-type App struct {
+type Backend struct {
 	ctx context.Context
 }
 
 // Needs to take Headers, Body, Params - just doing headers for now
 
-func (a *App) ModelIntializer(method Method, reqURL string, headers []KV) (*Scoop, error) {
+func (a *Backend) ModelIntializer(method Method, reqURL string, headers []KV) (*Scoop, error) {
 	var scoop Scoop
 
 	scoop.Request.Method = method
@@ -59,31 +64,54 @@ func (a *App) ModelIntializer(method Method, reqURL string, headers []KV) (*Scoo
 
 // Simple func to submit request and store response back to the struct
 
-func (a *App) SubmitRequest(s *Scoop) (Response, error) {
-	var r Response
+func (a *Backend) SubmitRequest(s *Scoop) {
+	go func() {
+		var r Response
 
-	client := http.Client{}
+		client := http.Client{}
 
-	req, err := http.NewRequest(string(s.Request.Method), s.Request.URL, nil)
-	if err != nil {
-		return Response{}, err
-	}
+		req, err := http.NewRequest(string(s.Request.Method), s.Request.URL, nil)
+		if err != nil {
+			App.Event.Emit("errMsg", fmt.Sprint(err))
+			return
+		}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return Response{}, err
-	}
-	defer resp.Body.Close()
+		start := time.Now()
 
-	r.Status = resp.Status
-	r.StatusCode = resp.StatusCode
+		resp, err := client.Do(req)
+		if err != nil {
+			App.Event.Emit("errMsg", fmt.Sprint(err))
+			return
+		}
+		defer resp.Body.Close()
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return Response{}, err
-	}
+		d := time.Since(start)
+		r.Duration = d.Milliseconds()
 
-	r.Body = string(bodyBytes)
+		r.Status = resp.Status
+		r.StatusCode = resp.StatusCode
+		r.ContentType = resp.Header.Get("Content-Type")
 
-	return r, nil
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			App.Event.Emit("errMsg", fmt.Sprint(err))
+			return
+		}
+
+		sBody := string(bodyBytes)
+
+		if r.ContentType == "application/json" {
+			var v any
+			if err := json.Unmarshal(bodyBytes, &v); err == nil {
+				b, err := json.MarshalIndent(v, "", "  ")
+				if err == nil {
+					sBody = string(b)
+				}
+			}
+		}
+
+		r.Body = sBody
+
+		App.Event.Emit("respMsg", r)
+	}()
 }

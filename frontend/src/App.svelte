@@ -1,14 +1,20 @@
 <script lang="ts">
+  import { Events } from "@wailsio/runtime";
   import KvInput from "$lib/components/kv-input.svelte";
   import RawInput from "$lib/components/raw-input.svelte";
-  import { Method, KV, App, Scoop, Response } from "../bindings/changeme";
+  import { Method, KV, Backend, Scoop, Response } from "../bindings/changeme";
+  import DotSpinner from "$lib/components/dot-spinner.svelte";
+  import ResponseViewer from "$lib/components/response-viewer.svelte";
 
   let scoop: Scoop | null = $state(null);
   let method: Method = $state(Method.Empty);
   let url: string = $state("");
   let headers = $state(new Map<string, string>([]));
   let queryParams = $state(new Map<string, string>([]));
-  let response: Response | undefined = $state<Response>();
+  let response: Response | undefined = $state();
+
+  let reqDuration: number | undefined = $state();
+  let loading: boolean = $state(false);
 
   type TType = "raw" | "key-value" | "json";
 
@@ -44,13 +50,24 @@
   }
 
   async function onSubmit(method: Method, url: string, headers: KV[]) {
+    response = undefined;
+    reqDuration = undefined;
+    loading = true;
+
     try {
-      scoop = await App.ModelIntializer(method, url, headers);
-      response = await App.SubmitRequest(scoop);
+      scoop = await Backend.ModelIntializer(method, url, headers);
+      await Backend.SubmitRequest(scoop);
     } catch (error) {
       console.error(error);
     }
   }
+
+  Events.On("respMsg", async (event: any) => {
+    console.log("Reveived Response!");
+    response = event.data as Response;
+    reqDuration = response.duration;
+    loading = false;
+  });
 </script>
 
 <div class="flex min-h-screen min-w-screen flex-col items-center justify-center gap-5">
@@ -82,9 +99,15 @@
         <input class="w-full min-w-0" placeholder="https://google.com" bind:value={url} />
       </div>
       <button
-        class="border-border ml-auto items-center rounded-sm border px-3 py-1 hover:cursor-pointer hover:bg-green-400 hover:text-black"
-        onclick={void onSubmit(method, url, [])}>Submit</button
+        class="border-border ml-auto items-center rounded-sm border px-3 py-1 hover:cursor-pointer hover:bg-green-400 hover:text-black
+        disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
+        disabled={loading}
+        onclick={() => {
+          onSubmit(method, url, []);
+        }}
       >
+        Submit
+      </button>
     </div>
 
     <!-->Request Headers, Query Params, and Request Body<-->
@@ -188,10 +211,21 @@
 
     <!-->Response Section<-->
     <div class="border-border flex min-h-0 w-full flex-1 flex-col rounded-sm border p-2">
-      <p class="text-sm underline underline-offset-3">Response</p>
-      <pre class="min-h-0 flex-1 overflow-auto text-sm wrap-break-word whitespace-pre-wrap">
-      {response ? JSON.stringify(response, null, 2) : ""}
-      </pre>
+      <!-->Response Title Section<-->
+      <div class="flex flex-row gap-2">
+        <p class="text-sm underline underline-offset-3">Response</p>
+        {#if reqDuration}
+          {#if response}
+            <p class="border-border border px-2 text-sm">{response.status}</p>
+            <p class="border-border border px-2 text-sm">{response.content_type}</p>
+          {/if}
+
+          <p class="border-border border px-2 text-sm">{reqDuration.toFixed(2)} ms</p>
+        {:else if loading}
+          <DotSpinner />
+        {/if}
+      </div>
+      <ResponseViewer value={response?.body ?? ""} contentType={response?.content_type ?? ""} />
     </div>
   </div>
 </div>

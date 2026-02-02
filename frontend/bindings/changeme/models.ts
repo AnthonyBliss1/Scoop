@@ -90,6 +90,8 @@ export class Response {
   "status_code": number;
   "headers": KV[];
   "body": string;
+  "duration": number;
+  "content_type": string;
 
   /** Creates a new Response instance. */
   constructor($$source: Partial<Response> = {}) {
@@ -104,6 +106,12 @@ export class Response {
     }
     if (!("body" in $$source)) {
       this["body"] = "";
+    }
+    if (!("duration" in $$source)) {
+      this["duration"] = 0;
+    }
+    if (!("content_type" in $$source)) {
+      this["content_type"] = "";
     }
 
     Object.assign(this, $$source);
