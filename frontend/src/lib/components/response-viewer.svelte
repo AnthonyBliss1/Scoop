@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import * as monaco from "monaco-editor";
-  import { defineMyTheme } from "$lib/monaco/theme.ts";
+  import { defineMyTheme } from "$lib/monaco/theme";
 
   export let value = "";
   export let contentType = "";
@@ -11,30 +11,26 @@
   let model: monaco.editor.ITextModel | null = null;
 
   function languageFromContentType(ct: string): string {
-    switch (ct) {
-      case "application/json":
-      case "text/json":
-        return "json";
-      case "text/typescript":
-      case "application/typescript":
-        return "typescript";
-      case "text/javascript":
-      case "application/javascript":
-        return "javascript";
-      default:
-        return "plaintext";
+    if (ct.startsWith("application/json") || ct.startsWith("text/json")) {
+      return "json";
+    } else if (ct.startsWith("application/html") || ct.startsWith("text/html")) {
+      return "html";
+    } else {
+      return "plaintext";
     }
   }
 
   function uriForLanguage(lang: string) {
-    const ext =
-      lang === "json"
-        ? "json"
-        : lang === "typescript"
-          ? "ts"
-          : lang === "javascript"
-            ? "js"
-            : "txt";
+    let ext: string = "";
+
+    switch (lang) {
+      case "json":
+        ext = "json";
+      case "html":
+        ext = "html";
+      default:
+        ext = "txt";
+    }
 
     return monaco.Uri.parse(`inmemory://viewer/${crypto.randomUUID()}.${ext}`);
   }

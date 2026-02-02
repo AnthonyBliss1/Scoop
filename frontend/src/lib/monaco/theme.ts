@@ -35,16 +35,29 @@ export function defineMyTheme(monaco: typeof Monaco) {
       "minimap.background": "#050907",
     },
     rules: [
+      // JSON colors
       { token: "string.key.json", foreground: "22c55e" }, // green keys
       { token: "string.value.json", foreground: "3b82f6" }, // blue string values
       { token: "number.json", foreground: "f97316" }, // orange numbers
-      { token: "keyword.json", foreground: "a855f7" }, // true/false/null (sometimes)
+      { token: "keyword.json", foreground: "a855f7" },
       { token: "delimiter.bracket.json", foreground: "6ee7b7" },
       { token: "delimiter.array.json", foreground: "6ee7b7" },
       { token: "delimiter.comma.json", foreground: "6ee7b7" },
       { token: "delimiter.colon.json", foreground: "6ee7b7" },
       { token: "delimiter.json", foreground: "6ee7b7" },
 
+      // HTML colors
+      { token: "delimiter.html", foreground: "6ee7b7" },
+      { token: "delimiter.xml", foreground: "6ee7b7" },
+      { token: "tag.html", foreground: "a855f7" }, // purple tags
+      { token: "tag.xml", foreground: "a855f7" },
+      { token: "attribute.name.html", foreground: "3b82f6" }, // blue attributes
+      { token: "attribute.name.xml", foreground: "3b82f6" },
+      { token: "attribute.value.html", foreground: "22c55e" }, // green values
+      { token: "string.html", foreground: "22c55e" },
+      { token: "keyword.html", foreground: "a855f7" },
+
+      // Default colors
       { token: "", foreground: "c7f9d4" },
       { token: "comment", foreground: "3a8f63", fontStyle: "italic" },
       { token: "string", foreground: "22c55e" },

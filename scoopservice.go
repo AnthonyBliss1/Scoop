@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
+
+	"github.com/yosssi/gohtml"
 )
 
 type Method string
@@ -100,17 +103,29 @@ func (a *Backend) SubmitRequest(s *Scoop) {
 
 		sBody := string(bodyBytes)
 
-		if r.ContentType == "application/json" {
+		// deterministic formatting
+		if strings.HasPrefix(r.ContentType, "application/json") {
 			var v any
-			if err := json.Unmarshal(bodyBytes, &v); err == nil {
-				b, err := json.MarshalIndent(v, "", "  ")
-				if err == nil {
-					sBody = string(b)
-				}
+			if err := json.Unmarshal(bodyBytes, &v); err != nil {
+				App.Event.Emit("errMsg", err)
+				return
 			}
+
+			b, err := json.MarshalIndent(v, "", "  ")
+			if err != nil {
+				App.Event.Emit("errMsg", err)
+				return
+			}
+
+			sBody = string(b)
+
+		} else if strings.HasPrefix(r.ContentType, "text/html") {
+			sBody = gohtml.Format(sBody)
 		}
 
+		// defaults to string if content-type isnt supported
 		r.Body = sBody
+		s.Response = r // store within the scoop
 
 		App.Event.Emit("respMsg", r)
 	}()

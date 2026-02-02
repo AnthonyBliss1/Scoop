@@ -23,7 +23,7 @@
 
   <textarea
     bind:this={ta}
-    class="text-muted-foreground h-full flex-1 resize-none overflow-y-auto p-2 leading-5 outline-none"
+    class="h-full flex-1 resize-none overflow-y-auto p-2 leading-5 text-green-300 outline-none"
     bind:value={content}
     rows={10}
     onscroll={syncScroll}

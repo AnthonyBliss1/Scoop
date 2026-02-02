@@ -9,8 +9,11 @@
   let scoop: Scoop | null = $state(null);
   let method: Method = $state(Method.Empty);
   let url: string = $state("");
+
+  // TODO handle headers and qparams
   let headers = $state(new Map<string, string>([]));
   let queryParams = $state(new Map<string, string>([]));
+
   let response: Response | undefined = $state();
 
   let reqDuration: number | undefined = $state();
@@ -45,7 +48,7 @@
         return `text-red-500`;
 
       default:
-        return "";
+        return "text-green-300";
     }
   }
 
@@ -96,7 +99,11 @@
       </div>
       <div class="flex min-w-0 flex-1 flex-row items-center gap-2">
         <p>URL:</p>
-        <input class="w-full min-w-0" placeholder="https://google.com" bind:value={url} />
+        <input
+          class="w-full min-w-0 text-green-300"
+          placeholder="https://google.com"
+          bind:value={url}
+        />
       </div>
       <button
         class="border-border ml-auto items-center rounded-sm border px-3 py-1 hover:cursor-pointer hover:bg-green-400 hover:text-black
@@ -111,6 +118,7 @@
     </div>
 
     <!-->Request Headers, Query Params, and Request Body<-->
+    <!-->TODO make this collapsable to make room for reading response<-->
     <div class="min-w-0 overflow-x-auto">
       <div class="flex flex-nowrap gap-10">
         <!-->Request Headers<-->
@@ -220,7 +228,7 @@
             <p class="border-border border px-2 text-sm">{response.content_type}</p>
           {/if}
 
-          <p class="border-border border px-2 text-sm">{reqDuration.toFixed(2)} ms</p>
+          <p class="border-border border px-2 text-sm">{reqDuration} ms</p>
         {:else if loading}
           <DotSpinner />
         {/if}
