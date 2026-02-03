@@ -43,7 +43,7 @@
     for (const row of rows) {
       if (row.key === "" && row.value === "") return;
 
-      const line: string = row.key + ":" + row.value + "\n";
+      const line: string = (row.key ?? "") + ":" + (row.value ?? "") + "\n";
       newContent = newContent + line;
     }
 

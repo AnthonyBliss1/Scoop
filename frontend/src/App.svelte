@@ -21,6 +21,8 @@
 
   type TType = "raw" | "key-value" | "json";
 
+  let reqParamsHidden = $state(false);
+
   let headerTType: TType = $state("raw");
   let headerRawContent: string = $state("");
 
@@ -71,6 +73,8 @@
     reqDuration = response.duration;
     loading = false;
   });
+
+  // TODO handle errorMsg events from backend with console.error and toast component
 </script>
 
 <div class="flex min-h-screen min-w-screen flex-col items-center justify-center gap-5">
@@ -118,109 +122,112 @@
     </div>
 
     <!-->Request Headers, Query Params, and Request Body<-->
-    <!-->TODO make this collapsable to make room for reading response<-->
-    <div class="min-w-0 overflow-x-auto">
-      <div class="flex flex-nowrap gap-10">
-        <!-->Request Headers<-->
-        <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 shrink-0 rounded-sm border p-2">
-          <div class="flex w-full flex-row justify-between px-3">
-            <p class="text-sm underline underline-offset-3">Request Headers</p>
+    {#if !reqParamsHidden}
+      <div class="min-w-0 overflow-x-auto">
+        <div class="flex flex-nowrap gap-10">
+          <!-->Request Headers<-->
+          <div
+            class="border-border min-h-[25vh] min-w-[25rem] flex-1 shrink-0 rounded-sm border p-2"
+          >
+            <div class="flex w-full flex-row justify-between px-3">
+              <p class="text-sm underline underline-offset-3">Request Headers</p>
 
-            <!--Radio button group for text editing option-->
-            <div class="flex items-center gap-4">
-              <label for="header-raw" class="inline-flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  id="header-raw"
-                  value="raw"
-                  class="align-middle"
-                  bind:group={headerTType}
-                />
-                raw
-              </label>
-              <label for="header-key-value" class="inline-flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  id="header-key-value"
-                  value="key-value"
-                  class="align-middle"
-                  bind:group={headerTType}
-                />
-                key-value
-              </label>
+              <!--Radio button group for text editing option-->
+              <div class="flex items-center gap-4">
+                <label for="header-raw" class="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    id="header-raw"
+                    value="raw"
+                    class="align-middle"
+                    bind:group={headerTType}
+                  />
+                  raw
+                </label>
+                <label for="header-key-value" class="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    id="header-key-value"
+                    value="key-value"
+                    class="align-middle"
+                    bind:group={headerTType}
+                  />
+                  key-value
+                </label>
+              </div>
             </div>
+            {#if headerTType === "raw"}
+              <RawInput bind:content={headerRawContent} />
+            {:else}
+              <KvInput bind:rawContent={headerRawContent} />
+            {/if}
           </div>
-          {#if headerTType === "raw"}
-            <RawInput bind:content={headerRawContent} />
-          {:else}
-            <KvInput bind:rawContent={headerRawContent} />
-          {/if}
-        </div>
 
-        <!-->Query Parameters<-->
-        <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 rounded-sm border p-2">
-          <div class="flex w-full flex-row justify-between px-3">
-            <p class="text-sm underline underline-offset-3">Query Parameters</p>
+          <!-->Query Parameters<-->
+          <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 rounded-sm border p-2">
+            <div class="flex w-full flex-row justify-between px-3">
+              <p class="text-sm underline underline-offset-3">Query Parameters</p>
 
-            <!--Radio button group for text editing option-->
-            <div class="flex items-center gap-4">
-              <label for="qp-raw" class="inline-flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  id="qp-raw"
-                  value="raw"
-                  class="align-middle"
-                  bind:group={qParamTType}
-                />
-                raw
-              </label>
-              <label for="qp-key-value" class="inline-flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  id="qp-key-value"
-                  value="key-value"
-                  class="align-middle"
-                  bind:group={qParamTType}
-                />
-                key-value
-              </label>
+              <!--Radio button group for text editing option-->
+              <div class="flex items-center gap-4">
+                <label for="qp-raw" class="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    id="qp-raw"
+                    value="raw"
+                    class="align-middle"
+                    bind:group={qParamTType}
+                  />
+                  raw
+                </label>
+                <label for="qp-key-value" class="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    id="qp-key-value"
+                    value="key-value"
+                    class="align-middle"
+                    bind:group={qParamTType}
+                  />
+                  key-value
+                </label>
+              </div>
             </div>
+            {#if qParamTType === "raw"}
+              <RawInput bind:content={qParamRawContent} />
+            {:else}
+              <KvInput bind:rawContent={qParamRawContent} />
+            {/if}
           </div>
-          {#if qParamTType === "raw"}
-            <RawInput bind:content={qParamRawContent} />
-          {:else}
-            <KvInput bind:rawContent={qParamRawContent} />
-          {/if}
-        </div>
 
-        <!-->Request Body<-->
-        <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 rounded-sm border p-2">
-          <div class="flex w-full flex-row justify-between px-3">
-            <p class="text-sm underline underline-offset-3">Request Body</p>
+          <!-->Request Body<-->
+          <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 rounded-sm border p-2">
+            <div class="flex w-full flex-row justify-between px-3">
+              <p class="text-sm underline underline-offset-3">Request Body</p>
 
-            <!--Radio button group for text editing option-->
-            <div class="flex items-center gap-4">
-              <label for="body-json" class="inline-flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  id="body-json"
-                  value="json"
-                  class="align-middle"
-                  bind:group={bodyTType}
-                />
-                JSON
-              </label>
+              <!--Radio button group for text editing option-->
+              <div class="flex items-center gap-4">
+                <label for="body-json" class="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    id="body-json"
+                    value="json"
+                    class="align-middle"
+                    bind:group={bodyTType}
+                  />
+                  JSON
+                </label>
+              </div>
             </div>
+            <RawInput bind:content={bodyRawContent} />
           </div>
-          <RawInput bind:content={bodyRawContent} />
         </div>
       </div>
-    </div>
+    {/if}
 
     <!-->Response Section<-->
-    <div class="border-border flex min-h-0 w-full flex-1 flex-col rounded-sm border p-2">
+    <div class="border-border bg-accent flex min-h-0 w-full flex-1 flex-col rounded-sm border p-2">
       <!-->Response Title Section<-->
-      <div class="flex flex-row gap-2">
+      <div class="mb-3 flex flex-row gap-2">
         <p class="text-sm underline underline-offset-3">Response</p>
         {#if reqDuration}
           {#if response}
@@ -232,6 +239,14 @@
         {:else if loading}
           <DotSpinner />
         {/if}
+        <button
+          class="border-border mr-4 ml-auto inline-flex h-5 w-5 items-center justify-center rounded-sm border text-2xl hover:bg-green-400 hover:text-black"
+          onclick={() => {
+            reqParamsHidden = !reqParamsHidden;
+          }}
+        >
+          {reqParamsHidden === false ? "+" : "-"}
+        </button>
       </div>
       <ResponseViewer value={response?.body ?? ""} contentType={response?.content_type ?? ""} />
     </div>

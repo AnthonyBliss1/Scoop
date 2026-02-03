@@ -12,7 +12,7 @@ export function defineMyTheme(monaco: typeof Monaco) {
       "editorBracketHighlight.foreground5": "#3b82f6",
       "editorBracketHighlight.foreground6": "#f97316",
       "editorBracketHighlight.unexpectedBracket.foreground": "#ef4444",
-      "editor.background": "#050907",
+      "editor.background": "#0d0d0d",
       "editor.foreground": "#c7f9d4",
       "editorLineNumber.foreground": "#1f7a46",
       "editorLineNumber.activeForeground": "#22c55e",
@@ -31,7 +31,7 @@ export function defineMyTheme(monaco: typeof Monaco) {
       "editorError.foreground": "#ef4444",
       "editorWarning.foreground": "#f59e0b",
       "editorInfo.foreground": "#3b82f6",
-      "editorGutter.background": "#050907",
+      "editorGutter.background": "#0d0d0d",
       "minimap.background": "#050907",
     },
     rules: [
