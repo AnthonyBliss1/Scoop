@@ -12,9 +12,8 @@ import type * as main$0 from "../../../../../changeme/models.js";
 declare module "@wailsio/runtime" {
   namespace Events {
     interface CustomEvents {
-      reqError: string;
+      errMsg: string;
       respMsg: main$0.Response;
-      time: string;
     }
   }
 }

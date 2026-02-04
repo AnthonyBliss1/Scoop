@@ -64,6 +64,7 @@
       await Backend.SubmitRequest(scoop);
     } catch (error) {
       console.error(error);
+      loading = false;
     }
   }
 
@@ -75,6 +76,10 @@
   });
 
   // TODO handle errorMsg events from backend with console.error and toast component
+  Events.On("errMsg", async (event: any) => {
+    console.error(event.data);
+    loading = false;
+  });
 </script>
 
 <div class="flex min-h-screen min-w-screen flex-col items-center justify-center gap-5">

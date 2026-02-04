@@ -107,13 +107,13 @@ func (a *Backend) SubmitRequest(s *Scoop) {
 		if strings.HasPrefix(r.ContentType, "application/json") {
 			var v any
 			if err := json.Unmarshal(bodyBytes, &v); err != nil {
-				App.Event.Emit("errMsg", err)
+				App.Event.Emit("errMsg", fmt.Sprint(err))
 				return
 			}
 
 			b, err := json.MarshalIndent(v, "", "  ")
 			if err != nil {
-				App.Event.Emit("errMsg", err)
+				App.Event.Emit("errMsg", fmt.Sprint(err))
 				return
 			}
 
