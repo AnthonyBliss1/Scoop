@@ -87,7 +87,7 @@
       <div class="flex h-10 items-center">
         <span class="w-10 shrink-0 p-2 text-right leading-5 select-none">{i + 1}</span>
 
-        <div class="flex flex-1 gap-5 p-2">
+        <div class="flex flex-1 gap-3 p-2 pr-10">
           <input
             class="border-border w-full border px-1 text-green-300"
             placeholder="Key"

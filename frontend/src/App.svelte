@@ -6,6 +6,8 @@
   import DotSpinner from "$lib/components/dot-spinner.svelte";
   import ResponseViewer from "$lib/components/response-viewer.svelte";
   import { onDestroy, onMount } from "svelte";
+  import { Toaster } from "$lib/components/ui/sonner/index.js";
+  import { toast } from "svelte-sonner";
 
   // events emitted from backend
   let onRspMsg: undefined | (() => void);
@@ -27,6 +29,7 @@
 
   let reqParamsHidden = $state(false);
 
+  // TODO test swapping out the RawInput component for a monaco-editor
   let headerTType: TType = $state("raw");
   let headerRawContent: string = $state("");
 
@@ -59,6 +62,20 @@
   }
 
   async function onSubmit(method: Method, url: string) {
+    let inputErr: string = "";
+
+    if (method === "") {
+      inputErr = "Please select a valid Request Method";
+    } else if (url === "") {
+      inputErr = "Please enter a URL";
+    }
+
+    if (inputErr !== "") {
+      console.error(inputErr);
+      toast.error(inputErr);
+      return;
+    }
+
     response = undefined;
     reqDuration = undefined;
     loading = true;
@@ -119,9 +136,9 @@
       loading = false;
     });
 
-    // TODO handle errorMsg events from backend with console.error and toast component
     onErrMsg = Events.On("errMsg", async (event: any) => {
       console.error(event.data);
+      toast.error(event.data);
       loading = false;
     });
   });
@@ -133,6 +150,8 @@
   });
 </script>
 
+<Toaster />
+
 <div class="flex min-h-screen min-w-screen flex-col items-center justify-center gap-5">
   <!-->App Title<-->
   <p class="text-lg text-green-500">Scoop v1.0</p>
@@ -140,33 +159,52 @@
   <!-->Outer Card<-->
   <div class="border-border flex h-[90vh] w-[90vw] flex-col gap-10 rounded-sm border p-10">
     <!-->Request Section<-->
-    <div class="flex-rows flex w-full gap-4">
+    <div class="flex-rows flex w-full gap-8">
       <div class="flex min-w-0 flex-row items-center gap-2">
         <p>Method:</p>
-        <input
-          placeholder="GET"
-          list="reqMethods"
-          bind:value={method}
-          class={`w-full max-w-[8rem] min-w-0 ${methodColor(method)}`}
-        />
-        <datalist id="reqMethods">
-          <option value="GET"></option>
-          <option value="POST"></option>
-          <option value="PUT"></option>
-          <option value="PATCH"></option>
-          <option value="DELETE"></option>
-        </datalist>
+        <div class="relative w-full max-w-[8rem] min-w-0">
+          <select
+            bind:value={method}
+            class={`border-border bg-accent h-9 w-full min-w-0 cursor-pointer
+            appearance-none rounded-sm border px-3 pr-8
+            ${methodColor(method)}
+            focus:ring-offset-background focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none`}
+          >
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+
+          <!-->Caret Icon<-->
+          <svg
+            class="pointer-events-none absolute top-1/2 right-2 h-4 w-4 -translate-y-1/2 opacity-70"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
       </div>
       <div class="flex min-w-0 flex-1 flex-row items-center gap-2">
         <p>URL:</p>
         <input
-          class="w-full min-w-0 text-green-300"
+          class="focus:ring-offset-background w-full min-w-0 text-green-300 focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
           placeholder="https://google.com"
           bind:value={url}
         />
       </div>
       <button
-        class="border-border ml-auto items-center rounded-sm border px-3 py-1 hover:cursor-pointer hover:bg-green-400 hover:text-black
+        class="border-border bg-accent text-foreground focus:ring-offset-background ml-auto inline-flex h-9 items-center
+        justify-center rounded-sm border px-3
+        text-sm hover:cursor-pointer hover:bg-green-400 hover:text-black focus:ring-2
+        focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
         disabled={loading}
         onclick={() => {
@@ -186,7 +224,7 @@
             class="border-border min-h-[25vh] min-w-[25rem] flex-1 shrink-0 rounded-sm border p-2"
           >
             <div class="flex w-full flex-row justify-between px-3">
-              <p class="text-sm underline underline-offset-3">Request Headers</p>
+              <p class="text-sm underline underline-offset-3">Headers</p>
 
               <!--Radio button group for text editing option-->
               <div class="flex items-center gap-4">
@@ -222,7 +260,7 @@
           <!-->Query Parameters<-->
           <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 rounded-sm border p-2">
             <div class="flex w-full flex-row justify-between px-3">
-              <p class="text-sm underline underline-offset-3">Query Parameters</p>
+              <p class="text-sm underline underline-offset-3">Parameters</p>
 
               <!--Radio button group for text editing option-->
               <div class="flex items-center gap-4">
@@ -258,7 +296,7 @@
           <!-->Request Body<-->
           <div class="border-border min-h-[25vh] min-w-[25rem] flex-1 rounded-sm border p-2">
             <div class="flex w-full flex-row justify-between px-3">
-              <p class="text-sm underline underline-offset-3">Request Body</p>
+              <p class="text-sm underline underline-offset-3">Body</p>
 
               <!--Radio button group for text editing option-->
               <div class="flex items-center gap-4">
@@ -284,7 +322,7 @@
     <div class="border-border bg-accent flex min-h-0 w-full flex-1 flex-col rounded-sm border p-2">
       <!-->Response Title Section<-->
       <div class="mb-3 flex flex-row gap-2">
-        <p class="text-sm underline underline-offset-3">Response</p>
+        <p class="px-3 text-sm underline underline-offset-3">Response</p>
         {#if reqDuration}
           {#if response}
             <p class="border-border border px-2 text-sm">{response.status}</p>
