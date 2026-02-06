@@ -13,12 +13,17 @@ import {
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
+export function AddQueryParams(s: $models.Scoop | null): $CancellablePromise<void> {
+  return $Call.ByID(1676166479, s);
+}
+
 export function ModelIntializer(
   method: $models.Method,
   reqURL: string,
   headers: $models.KV[],
+  qParams: $models.KV[],
 ): $CancellablePromise<$models.Scoop | null> {
-  return $Call.ByID(3595892640, method, reqURL, headers).then(($result: any) => {
+  return $Call.ByID(3595892640, method, reqURL, headers, qParams).then(($result: any) => {
     return $$createType1($result);
   });
 }

@@ -53,14 +53,15 @@ type Backend struct {
 	ctx context.Context
 }
 
-// Needs to take Headers, Body, Params - just doing headers for now
+// Initializes the Scoop model by attaching method, url, headers, query params, and body (body soon)
 
-func (a *Backend) ModelIntializer(method Method, reqURL string, headers []KV) (*Scoop, error) {
+func (a *Backend) ModelIntializer(method Method, reqURL string, headers []KV, qParams []KV) (*Scoop, error) {
 	var scoop Scoop
 
 	scoop.Request.Method = method
 	scoop.Request.URL = reqURL
 	scoop.Request.Headers = headers
+	scoop.Request.QParams = qParams
 
 	return &scoop, nil
 }
@@ -73,10 +74,18 @@ func (a *Backend) SubmitRequest(s *Scoop) {
 
 		client := http.Client{}
 
+		// add query params to url
+		a.AddQueryParams(s)
+
 		req, err := http.NewRequest(string(s.Request.Method), s.Request.URL, nil)
 		if err != nil {
 			App.Event.Emit("errMsg", fmt.Sprint(err))
 			return
+		}
+
+		// add headers to request
+		for _, h := range s.Request.Headers {
+			req.Header.Add(h.Key, h.Value)
 		}
 
 		start := time.Now()
@@ -129,4 +138,23 @@ func (a *Backend) SubmitRequest(s *Scoop) {
 
 		App.Event.Emit("respMsg", r)
 	}()
+}
+
+// could parse the string URL from Scoop as a url struct and then get the params as url.Value map
+// although the url would then need to be casted back as a string for the request. i think it makes much
+// more sense to modify the url string instead. if i run into issue i will use url.Parse
+
+func (a *Backend) AddQueryParams(s *Scoop) {
+	url := s.Request.URL + "?"
+
+	for i, param := range s.Request.QParams {
+		if i == 0 {
+			url = url + param.Key + "=" + param.Value
+			continue
+		}
+
+		url = url + "&" + param.Key + "=" + param.Value
+	}
+
+	s.Request.URL = url
 }

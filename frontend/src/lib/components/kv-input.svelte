@@ -2,7 +2,13 @@
   import type { KV } from "bindings/changeme";
   import { onDestroy, onMount } from "svelte";
 
-  let { rawContent = $bindable<string>("") } = $props<{ rawContent: string }>();
+  type Mode = "isHeader" | "isQParam" | undefined;
+
+  let { inputMode = $bindable<Mode>(), rawContent = $bindable<string>("") } = $props<{
+    inputMode: Mode;
+    rawContent: string;
+  }>();
+
   let rows: KV[] = $state([]);
 
   let scroller: HTMLDivElement;
@@ -23,11 +29,17 @@
     }
 
     const r: string[] = rawContent.split("\n");
+    let item: string[] = [];
 
     for (const row of r) {
       if (row === "") return;
 
-      const item: string[] = row.split(":");
+      if (inputMode === "isHeader") {
+        item = row.split(":");
+      }
+      if (inputMode === "isQParam") {
+        item = row.split("=");
+      }
 
       const key: string = item[0];
       const val: string = item[1];
@@ -37,13 +49,22 @@
     }
   }
 
+  // called on change to ensure the raw format keeps up with the kv (since raw version feeds request)
   function kvToRaw() {
     let newContent: string = "";
+    let line: string = "";
 
     for (const row of rows) {
       if (row.key === "" && row.value === "") return;
 
-      const line: string = (row.key ?? "") + ":" + (row.value ?? "") + "\n";
+      if (inputMode === "isHeader") {
+        line = (row.key ?? "") + ":" + (row.value ?? "") + "\n";
+      }
+
+      if (inputMode === "isQParam") {
+        line = (row.key ?? "") + "=" + (row.value ?? "") + "\n";
+      }
+
       newContent = newContent + line;
     }
 
@@ -70,11 +91,13 @@
             class="border-border w-full border px-1 text-green-300"
             placeholder="Key"
             bind:value={row.key}
+            onchange={kvToRaw}
           />
           <input
             class="border-border w-full border px-1 text-green-300"
             placeholder="Value"
             bind:value={row.value}
+            onchange={kvToRaw}
           />
         </div>
       </div>

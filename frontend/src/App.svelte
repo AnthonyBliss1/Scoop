@@ -10,9 +10,9 @@
   let method: Method = $state(Method.Empty);
   let url: string = $state("");
 
-  // TODO handle headers and qparams
-  let headers = $state(new Map<string, string>([]));
-  let queryParams = $state(new Map<string, string>([]));
+  // TODO handle headers
+  let headers: KV[] = $state([]);
+  let queryParams: KV[] = $state([]);
 
   let response: Response | undefined = $state();
 
@@ -54,17 +54,37 @@
     }
   }
 
-  async function onSubmit(method: Method, url: string, headers: KV[]) {
+  async function onSubmit(method: Method, url: string) {
     response = undefined;
     reqDuration = undefined;
     loading = true;
 
+    rawToQParams();
+
     try {
-      scoop = await Backend.ModelIntializer(method, url, headers);
+      scoop = await Backend.ModelIntializer(method, url, headers, queryParams);
       await Backend.SubmitRequest(scoop);
     } catch (error) {
       console.error(error);
       loading = false;
+    }
+  }
+
+  function rawToQParams() {
+    const r: string[] = qParamRawContent.split("\n");
+    queryParams = [];
+
+    for (const row of r) {
+      if (row === "") return;
+
+      const item: string[] = row.split("=");
+
+      const key: string = item[0];
+      const val: string = item[1];
+
+      const newRow: KV = { key: key, value: val };
+      console.log(`Query Param: ${newRow.key}=${newRow.value}`);
+      queryParams.push(newRow);
     }
   }
 
@@ -119,7 +139,7 @@
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
         disabled={loading}
         onclick={() => {
-          onSubmit(method, url, []);
+          onSubmit(method, url);
         }}
       >
         Submit
@@ -164,7 +184,7 @@
             {#if headerTType === "raw"}
               <RawInput bind:content={headerRawContent} />
             {:else}
-              <KvInput bind:rawContent={headerRawContent} />
+              <KvInput bind:rawContent={headerRawContent} inputMode={"isHeader"} />
             {/if}
           </div>
 
@@ -200,7 +220,7 @@
             {#if qParamTType === "raw"}
               <RawInput bind:content={qParamRawContent} />
             {:else}
-              <KvInput bind:rawContent={qParamRawContent} />
+              <KvInput bind:rawContent={qParamRawContent} inputMode={"isQParam"} />
             {/if}
           </div>
 
