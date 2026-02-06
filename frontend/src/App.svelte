@@ -5,12 +5,16 @@
   import { Method, KV, Backend, Scoop, Response } from "../bindings/changeme";
   import DotSpinner from "$lib/components/dot-spinner.svelte";
   import ResponseViewer from "$lib/components/response-viewer.svelte";
+  import { onDestroy, onMount } from "svelte";
+
+  // events emitted from backend
+  let onRspMsg: undefined | (() => void);
+  let onErrMsg: undefined | (() => void);
 
   let scoop: Scoop | null = $state(null);
   let method: Method = $state(Method.Empty);
   let url: string = $state("");
 
-  // TODO handle headers
   let headers: KV[] = $state([]);
   let queryParams: KV[] = $state([]);
 
@@ -59,6 +63,7 @@
     reqDuration = undefined;
     loading = true;
 
+    rawToHeaders();
     rawToQParams();
 
     try {
@@ -70,6 +75,24 @@
     }
   }
 
+  function rawToHeaders() {
+    const r: string[] = headerRawContent.split("\n");
+    headers = [];
+
+    for (const row of r) {
+      if (row === "") return;
+
+      const idx: number = row.indexOf(":");
+
+      const key: string = (idx === -1 ? row : row.slice(0, idx)).trim();
+      const val: string = (idx === -1 ? "" : row.slice(idx + 1)).trim();
+
+      const newRow: KV = { key: key, value: val };
+      console.log(`Headers: ${newRow.key}:${newRow.value}`);
+      headers.push(newRow);
+    }
+  }
+
   function rawToQParams() {
     const r: string[] = qParamRawContent.split("\n");
     queryParams = [];
@@ -77,10 +100,10 @@
     for (const row of r) {
       if (row === "") return;
 
-      const item: string[] = row.split("=");
+      const idx: number = row.indexOf("=");
 
-      const key: string = item[0];
-      const val: string = item[1];
+      const key: string = (idx === -1 ? row : row.slice(0, idx)).trim();
+      const val: string = (idx === -1 ? "" : row.slice(idx + 1)).trim();
 
       const newRow: KV = { key: key, value: val };
       console.log(`Query Param: ${newRow.key}=${newRow.value}`);
@@ -88,17 +111,25 @@
     }
   }
 
-  Events.On("respMsg", async (event: any) => {
-    console.log("Reveived Response!");
-    response = event.data as Response;
-    reqDuration = response.duration;
-    loading = false;
+  onMount(() => {
+    onRspMsg = Events.On("respMsg", async (event: any) => {
+      console.log("Reveived Response!");
+      response = event.data as Response;
+      reqDuration = response.duration;
+      loading = false;
+    });
+
+    // TODO handle errorMsg events from backend with console.error and toast component
+    onErrMsg = Events.On("errMsg", async (event: any) => {
+      console.error(event.data);
+      loading = false;
+    });
   });
 
-  // TODO handle errorMsg events from backend with console.error and toast component
-  Events.On("errMsg", async (event: any) => {
-    console.error(event.data);
-    loading = false;
+  // cleanup events on destroy
+  onDestroy(() => {
+    onRspMsg?.();
+    onErrMsg?.();
   });
 </script>
 

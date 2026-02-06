@@ -85,6 +85,10 @@ func (a *Backend) SubmitRequest(s *Scoop) {
 
 		// add headers to request
 		for _, h := range s.Request.Headers {
+			if h.Key == "" || h.Value == "" {
+				continue
+			}
+
 			req.Header.Add(h.Key, h.Value)
 		}
 

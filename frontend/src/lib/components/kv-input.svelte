@@ -29,20 +29,21 @@
     }
 
     const r: string[] = rawContent.split("\n");
-    let item: string[] = [];
+    let idx: number = 0;
 
     for (const row of r) {
       if (row === "") return;
 
       if (inputMode === "isHeader") {
-        item = row.split(":");
-      }
-      if (inputMode === "isQParam") {
-        item = row.split("=");
+        idx = row.indexOf(":");
       }
 
-      const key: string = item[0];
-      const val: string = item[1];
+      if (inputMode === "isQParam") {
+        idx = row.indexOf("=");
+      }
+
+      const key: string = (idx === -1 ? row : row.slice(0, idx)).trim();
+      const val: string = (idx === -1 ? "" : row.slice(idx + 1)).trim();
 
       const newRow: KV = { key: key, value: val };
       rows.push(newRow);
