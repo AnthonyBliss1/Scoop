@@ -1,17 +1,22 @@
 <script lang="ts">
   import { Events } from "@wailsio/runtime";
+  import { Method, KV, Backend, Scoop, Response } from "../bindings/changeme";
   import KvInput from "$lib/components/kv-input.svelte";
   import RawInput from "$lib/components/raw-input.svelte";
-  import { Method, KV, Backend, Scoop, Response } from "../bindings/changeme";
   import DotSpinner from "$lib/components/dot-spinner.svelte";
   import ResponseViewer from "$lib/components/response-viewer.svelte";
-  import { onDestroy, onMount } from "svelte";
   import { Toaster } from "$lib/components/ui/sonner/index.js";
   import { toast } from "svelte-sonner";
+  import CmdPalette from "$lib/components/command-palette.svelte";
+  import { onDestroy, onMount } from "svelte";
 
   // events emitted from backend
   let onRspMsg: undefined | (() => void);
   let onErrMsg: undefined | (() => void);
+
+  let showCmdPalette: boolean = $state(false);
+
+  let reqParamsHidden: boolean = $state(false);
 
   let scoop: Scoop | null = $state(null);
   let method: Method = $state(Method.Empty);
@@ -26,8 +31,6 @@
   let loading: boolean = $state(false);
 
   type TType = "raw" | "key-value" | "json";
-
-  let reqParamsHidden = $state(false);
 
   // TODO test swapping out the RawInput component for a monaco-editor
   let headerTType: TType = $state("raw");
@@ -61,7 +64,7 @@
     }
   }
 
-  async function onSubmit(method: Method, url: string) {
+  async function onSend(method: Method, url: string) {
     let inputErr: string = "";
 
     if (method === "") {
@@ -128,6 +131,20 @@
     }
   }
 
+  const openCmdPalette = (event: KeyboardEvent) => {
+    if (event.ctrlKey && event.shiftKey && (event.key === "P" || event.code === "KeyP")) {
+      showCmdPalette = true;
+    } else if (event.key === "Escape" && showCmdPalette) {
+      showCmdPalette = false;
+    }
+  };
+
+  const hideReqParams = (event: KeyboardEvent) => {
+    if (event.ctrlKey && (event.key === "F" || event.code === "KeyF")) {
+      reqParamsHidden = !reqParamsHidden;
+    }
+  };
+
   onMount(() => {
     onRspMsg = Events.On("respMsg", async (event: any) => {
       console.log("Reveived Response!");
@@ -141,18 +158,24 @@
       toast.error(event.data);
       loading = false;
     });
+
+    document.addEventListener("keydown", openCmdPalette);
+    document.addEventListener("keydown", hideReqParams);
   });
 
   // cleanup events on destroy
   onDestroy(() => {
     onRspMsg?.();
     onErrMsg?.();
+
+    document.removeEventListener("keydown", openCmdPalette);
+    document.removeEventListener("keydown", hideReqParams);
   });
 </script>
 
 <Toaster />
 
-<div class="flex min-h-screen min-w-screen flex-col items-center justify-center gap-5">
+<div class="relative flex min-h-screen min-w-screen flex-col items-center justify-center gap-5">
   <!-->App Title<-->
   <p class="text-lg text-green-500">Scoop v1.0</p>
 
@@ -208,10 +231,10 @@
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
         disabled={loading}
         onclick={() => {
-          onSubmit(method, url);
+          onSend(method, url);
         }}
       >
-        Submit
+        Send
       </button>
     </div>
 
@@ -334,7 +357,7 @@
           <DotSpinner />
         {/if}
         <button
-          class="border-border mr-4 ml-auto inline-flex h-5 w-5 items-center justify-center rounded-sm border text-2xl hover:bg-green-400 hover:text-black"
+          class="border-border mr-4 ml-auto inline-flex h-5 w-5 items-center justify-center rounded-sm border text-2xl hover:bg-green-400 hover:text-black focus:outline-none"
           onclick={() => {
             reqParamsHidden = !reqParamsHidden;
           }}
@@ -345,4 +368,26 @@
       <ResponseViewer value={response?.body ?? ""} contentType={response?.content_type ?? ""} />
     </div>
   </div>
+
+  {#if showCmdPalette}
+    <div
+      class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
+      aria-modal="true"
+      role="dialog"
+    >
+      <!--Backdrop as button for click away-->
+      <button
+        class="absolute inset-0 bg-black/60"
+        aria-hidden="true"
+        onclick={() => {
+          showCmdPalette = false;
+        }}
+      ></button>
+
+      <!--CmdPalette-->
+      <div class="border-border bg-card relative z-101 w-full max-w-xl rounded-md border shadow-lg">
+        <CmdPalette />
+      </div>
+    </div>
+  {/if}
 </div>
