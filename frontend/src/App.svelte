@@ -1,22 +1,25 @@
 <script lang="ts">
   import { Events } from "@wailsio/runtime";
+  import { onDestroy, onMount } from "svelte";
   import { Method, KV, Backend, Scoop, Response } from "../bindings/changeme";
   import KvInput from "$lib/components/kv-input.svelte";
   import RawInput from "$lib/components/raw-input.svelte";
   import DotSpinner from "$lib/components/dot-spinner.svelte";
   import ResponseViewer from "$lib/components/response-viewer.svelte";
+  import CmdPalette from "$lib/components/command-palette.svelte";
   import { Toaster } from "$lib/components/ui/sonner/index.js";
   import { toast } from "svelte-sonner";
-  import CmdPalette from "$lib/components/command-palette.svelte";
-  import { onDestroy, onMount } from "svelte";
+  import Package from "@lucide/svelte/icons/package";
 
   // events emitted from backend
   let onRspMsg: undefined | (() => void);
   let onErrMsg: undefined | (() => void);
 
   let showCmdPalette: boolean = $state(false);
-
   let reqParamsHidden: boolean = $state(false);
+
+  let currentCollection: string = $state("temp");
+  let currentRequest: string = $state("");
 
   let scoop: Scoop | null = $state(null);
   let method: Method = $state(Method.Empty);
@@ -140,7 +143,7 @@
   };
 
   const hideReqParams = (event: KeyboardEvent) => {
-    if (event.ctrlKey && (event.key === "F" || event.code === "KeyF")) {
+    if (event.ctrlKey && (event.key === "E" || event.code === "KeyE")) {
       reqParamsHidden = !reqParamsHidden;
     }
   };
@@ -177,10 +180,10 @@
 
 <div class="relative flex min-h-screen min-w-screen flex-col items-center justify-center gap-5">
   <!-->App Title<-->
-  <p class="text-lg text-green-500">Scoop v1.0</p>
+  <p class="text-md text-green-500">Scoop v1.0</p>
 
   <!-->Outer Card<-->
-  <div class="border-border flex h-[90vh] w-[90vw] flex-col gap-10 rounded-sm border p-10">
+  <div class="border-border flex h-[90vh] w-[90vw] flex-col gap-10 rounded-sm border p-10 pb-0">
     <!-->Request Section<-->
     <div class="flex-rows flex w-full gap-8">
       <div class="flex min-w-0 flex-row items-center gap-2">
@@ -367,8 +370,22 @@
       </div>
       <ResponseViewer value={response?.body ?? ""} contentType={response?.content_type ?? ""} />
     </div>
+    <div class="-mx-10 h-8 items-center rounded-b-sm bg-green-950/30">
+      <div class="flex h-full flex-row items-center gap-5 px-10 text-sm text-green-500/90">
+        <div class="flex flex-row gap-2">
+          <Package size={20} />
+          <p>{currentCollection}</p>
+        </div>
+
+        {#if currentRequest !== ""}
+          <p>/</p>
+          <p>{currentRequest}</p>
+        {/if}
+      </div>
+    </div>
   </div>
 
+  <!-->CmdPalette Overlay<-->
   {#if showCmdPalette}
     <div
       class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
@@ -385,7 +402,7 @@
       ></button>
 
       <!--CmdPalette-->
-      <div class="border-border bg-card relative z-101 w-full max-w-xl rounded-md border shadow-lg">
+      <div class=" relative z-101 w-full max-w-xl shadow-lg">
         <CmdPalette />
       </div>
     </div>
