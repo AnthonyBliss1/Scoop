@@ -373,8 +373,8 @@
     <div class="-mx-10 h-8 items-center rounded-b-sm bg-green-950/30">
       <div class="flex h-full flex-row items-center gap-5 px-10 text-sm text-green-500/90">
         <div class="flex flex-row gap-2">
-          <Package size={20} />
-          <p>{currentCollection}</p>
+          <Package class={currentCollection === "temp" ? `text-blue-500/90` : ``} size={20} />
+          <p class={currentCollection === "temp" ? `text-blue-500/90` : ``}>{currentCollection}</p>
         </div>
 
         {#if currentRequest !== ""}
@@ -403,7 +403,7 @@
 
       <!--CmdPalette-->
       <div class=" relative z-101 w-full max-w-xl shadow-lg">
-        <CmdPalette />
+        <CmdPalette bind:collection={currentCollection} bind:request={currentRequest} />
       </div>
     </div>
   {/if}

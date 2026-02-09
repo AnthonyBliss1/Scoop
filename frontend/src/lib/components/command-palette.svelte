@@ -7,59 +7,123 @@
   import CloudDownload from "@lucide/svelte/icons/cloud-download";
 
   import * as Command from "$lib/components/ui/command/index.js";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
+  import CreateCollection from "./create-collection.svelte";
+  import CreateRequest from "./create-request.svelte";
 
-  let cmd: string = $state("Create New Request");
+  type Command =
+    | "Create New Request"
+    | "Create Collection"
+    | "Open Collection"
+    | "Create DNS Alias"
+    | "Configure Sync"
+    | "Run Sync";
+
+  let cmd: Command = $state("Create New Request");
+  let executeCmd = $state<Command | null>(null);
+
   let inputEl: HTMLInputElement | null = $state(null);
+
+  let { collection = $bindable<string>(""), request = $bindable<string>("") } = $props<{
+    collection: string;
+    request: string;
+  }>();
+
+  const onEnter = (event: KeyboardEvent) => {
+    if (event.key === "Enter") {
+      switch (cmd) {
+        case "Create New Request":
+          executeCmd = "Create New Request";
+          break;
+        case "Create Collection":
+          executeCmd = "Create Collection";
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
+  $effect(() => {
+    if (!executeCmd) {
+      inputEl?.focus();
+    }
+  });
 
   onMount(() => {
     inputEl?.focus();
+    document.addEventListener("keydown", onEnter);
+  });
+
+  onDestroy(() => {
+    executeCmd = null;
   });
 </script>
 
-<Command.Root bind:value={cmd} class="border-border rounded-sm  border shadow-md md:min-w-[450px]">
-  <Command.Input bind:ref={inputEl} placeholder="Type a command or search..." />
+{#if !executeCmd}
+  <Command.Root
+    class="border-border rounded-sm  border shadow-md md:min-w-[450px]"
+    bind:value={cmd}
+  >
+    <Command.Input bind:ref={inputEl} placeholder="Type a command or search..." />
 
-  <Command.List>
-    <Command.Empty>No results found.</Command.Empty>
+    <Command.List>
+      <Command.Empty>No results found.</Command.Empty>
 
-    <Command.Group heading="Suggested">
-      <Command.Item value="Create New Request">
-        <Send class="text-green-500" />
-        <span class="text-green-300">Create New Request</span>
-        <Command.Shortcut class="text-green-500">⌘R</Command.Shortcut>
-      </Command.Item>
-    </Command.Group>
+      <Command.Group heading="Suggested">
+        <Command.Item
+          value="Create New Request"
+          class="hover:cursor-pointer"
+          onclick={() => {
+            executeCmd = "Create New Request";
+          }}
+        >
+          <Send class="text-green-500" />
+          <span class="text-green-300">Create New Request</span>
+          <Command.Shortcut class="text-green-500">⌘R</Command.Shortcut>
+        </Command.Item>
+      </Command.Group>
 
-    <Command.Group heading="Collections">
-      <Command.Item value="Create Collection">
-        <PackagePlus class="text-green-500" />
-        <span class="text-green-300">Create Collection</span>
-        <Command.Shortcut class="text-green-500">⌘N</Command.Shortcut>
-      </Command.Item>
-      <Command.Item value="Open Collection">
-        <PackageOpen class="text-green-500" />
-        <span class="text-green-300">Open Collection</span>
-        <Command.Shortcut class="text-green-500">⌘O</Command.Shortcut>
-      </Command.Item>
-    </Command.Group>
+      <Command.Group heading="Collections">
+        <Command.Item
+          class="hover:cursor-pointer"
+          value="Create Collection"
+          onclick={() => {
+            executeCmd = "Create Collection";
+          }}
+        >
+          <PackagePlus class="text-green-500" />
+          <span class="text-green-300">Create Collection</span>
+          <Command.Shortcut class="text-green-500">⌘N</Command.Shortcut>
+        </Command.Item>
+        <Command.Item value="Open Collection">
+          <PackageOpen class="text-green-500" />
+          <span class="text-green-300">Open Collection</span>
+          <Command.Shortcut class="text-green-500">⌘O</Command.Shortcut>
+        </Command.Item>
+      </Command.Group>
 
-    <Command.Group heading="Cloud">
-      <Command.Item value="Create DNS Alias">
-        <Server class="text-green-500" />
-        <span class="text-green-300">Create DNS Alias</span>
-        <Command.Shortcut class="text-green-500">⌘D</Command.Shortcut>
-      </Command.Item>
-      <Command.Item value="Configure Sync">
-        <Database class="text-green-500" />
-        <span class="text-green-300">Configure Sync</span>
-        <Command.Shortcut class="text-green-500">⌘C</Command.Shortcut>
-      </Command.Item>
-      <Command.Item value="Run Sync">
-        <CloudDownload class="text-green-500" />
-        <span class="text-green-300">Run Sync</span>
-        <Command.Shortcut class="text-green-500">⌘S</Command.Shortcut>
-      </Command.Item>
-    </Command.Group>
-  </Command.List>
-</Command.Root>
+      <Command.Group heading="Cloud">
+        <Command.Item value="Create DNS Alias">
+          <Server class="text-green-500" />
+          <span class="text-green-300">Create DNS Alias</span>
+          <Command.Shortcut class="text-green-500">⌘D</Command.Shortcut>
+        </Command.Item>
+        <Command.Item value="Configure Sync">
+          <Database class="text-green-500" />
+          <span class="text-green-300">Configure Sync</span>
+          <Command.Shortcut class="text-green-500">⌘C</Command.Shortcut>
+        </Command.Item>
+        <Command.Item value="Run Sync">
+          <CloudDownload class="text-green-500" />
+          <span class="text-green-300">Run Sync</span>
+          <Command.Shortcut class="text-green-500">⌘S</Command.Shortcut>
+        </Command.Item>
+      </Command.Group>
+    </Command.List>
+  </Command.Root>
+{:else if executeCmd === "Create New Request"}
+  <CreateRequest bind:cmd={executeCmd} bind:request />
+{:else if executeCmd === "Create Collection"}
+  <CreateCollection bind:cmd={executeCmd} bind:collection />
+{/if}
