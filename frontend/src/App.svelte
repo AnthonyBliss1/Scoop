@@ -28,9 +28,8 @@
   let headers: KV[] = $state([]);
   let queryParams: KV[] = $state([]);
 
+  // need this response value, since Svelte reactivity does not play nice with mutated class instances
   let response: Response | undefined = $state();
-
-  let reqDuration: number | undefined = $state();
   let loading: boolean = $state(false);
 
   type TType = "raw" | "key-value" | "json";
@@ -42,6 +41,7 @@
   let qParamTType: TType = $state("raw");
   let qParamRawContent: string = $state("");
 
+  // TODO support body in request on backend
   let bodyTType: TType = $state("json");
   let bodyRawContent: string = $state("");
 
@@ -83,7 +83,6 @@
     }
 
     response = undefined;
-    reqDuration = undefined;
     loading = true;
 
     rawToHeaders();
@@ -150,9 +149,12 @@
 
   onMount(() => {
     onRspMsg = Events.On("respMsg", async (event: any) => {
-      console.log("Reveived Response!");
-      response = event.data as Response;
-      reqDuration = response.duration;
+      scoop = event.data as Scoop;
+
+      // want to use reactive plain objects in UI since Svelete reactivity doesnt like classes
+      response = scoop.response;
+      url = scoop?.request.url ?? "";
+
       loading = false;
     });
 
@@ -349,13 +351,10 @@
       <!-->Response Title Section<-->
       <div class="mb-3 flex flex-row gap-2">
         <p class="px-3 text-sm underline underline-offset-3">Response</p>
-        {#if reqDuration}
-          {#if response}
-            <p class="border-border border px-2 text-sm">{response.status}</p>
-            <p class="border-border border px-2 text-sm">{response.content_type}</p>
-          {/if}
-
-          <p class="border-border border px-2 text-sm">{reqDuration} ms</p>
+        {#if response}
+          <p class="border-border border px-2 text-sm">{response.status}</p>
+          <p class="border-border border px-2 text-sm">{response.content_type}</p>
+          <p class="border-border border px-2 text-sm">{response?.duration} ms</p>
         {:else if loading}
           <DotSpinner />
         {/if}

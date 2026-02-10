@@ -26,10 +26,13 @@
     switch (lang) {
       case "json":
         ext = "json";
+        break;
       case "html":
         ext = "html";
+        break;
       default:
         ext = "txt";
+        break;
     }
 
     return monaco.Uri.parse(`inmemory://viewer/${crypto.randomUUID()}.${ext}`);

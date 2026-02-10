@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -140,25 +141,24 @@ func (a *Backend) SubmitRequest(s *Scoop) {
 		r.Body = sBody
 		s.Response = r // store within the scoop
 
-		App.Event.Emit("respMsg", r)
+		App.Event.Emit("respMsg", s)
 	}()
 }
 
-// could parse the string URL from Scoop as a url struct and then get the params as url.Value map
-// although the url would then need to be casted back as a string for the request. i think it makes much
-// more sense to modify the url string instead. if i run into issue i will use url.Parse
+func (a *Backend) AddQueryParams(s *Scoop) error {
+	u, err := url.Parse(s.Request.URL)
+	if err != nil {
+		App.Event.Emit("errMsg", err)
+		return err
+	}
+	query := url.Values{}
 
-func (a *Backend) AddQueryParams(s *Scoop) {
-	url := s.Request.URL + "?"
-
-	for i, param := range s.Request.QParams {
-		if i == 0 {
-			url = url + param.Key + "=" + param.Value
-			continue
-		}
-
-		url = url + "&" + param.Key + "=" + param.Value
+	for _, param := range s.Request.QParams {
+		query.Add(param.Key, param.Value)
 	}
 
-	s.Request.URL = url
+	u.RawQuery = query.Encode()
+
+	s.Request.URL = u.String()
+	return nil
 }

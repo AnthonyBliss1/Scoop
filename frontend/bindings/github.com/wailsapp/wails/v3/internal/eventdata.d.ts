@@ -13,7 +13,7 @@ declare module "@wailsio/runtime" {
   namespace Events {
     interface CustomEvents {
       errMsg: string;
-      respMsg: main$0.Response;
+      respMsg: main$0.Scoop | null;
     }
   }
 }
