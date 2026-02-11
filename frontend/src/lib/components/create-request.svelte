@@ -30,6 +30,8 @@
 
       if (ok) {
         request = tempRequest;
+
+        // this seems to work here but not sure why, need to investigate
         collection.requests.push(request);
         console.log(`Created Request: ${request.name}`);
       }

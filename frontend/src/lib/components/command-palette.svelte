@@ -11,6 +11,7 @@
   import CreateCollection from "./create-collection.svelte";
   import CreateRequest from "./create-request.svelte";
   import type { Collection, Request } from "bindings/changeme";
+  import OpenCollection from "./open-collection.svelte";
 
   type Command =
     | "Create New Request"
@@ -37,7 +38,7 @@
   }>();
 
   const onEnter = (event: KeyboardEvent) => {
-    if (executeCmd) return;
+    if (!executeCmd) return;
 
     if (event.key === "Enter") {
       switch (cmd) {
@@ -78,7 +79,7 @@
     <Command.Input bind:ref={inputEl} placeholder="Type a command or search..." />
 
     <Command.List>
-      <Command.Empty>No results found.</Command.Empty>
+      <Command.Empty>No results found</Command.Empty>
 
       <Command.Group heading="Suggested">
         <Command.Item
@@ -107,7 +108,13 @@
           <span class="text-green-300">Create Collection</span>
           <Command.Shortcut class="text-green-500">⌘N</Command.Shortcut>
         </Command.Item>
-        <Command.Item value="Open Collection">
+        <Command.Item
+          class="hover:cursor-pointer"
+          value="Open Collection"
+          onclick={() => {
+            executeCmd = "Open Collection";
+          }}
+        >
           <PackageOpen class="text-green-500" />
           <span class="text-green-300">Open Collection</span>
           <Command.Shortcut class="text-green-500">⌘O</Command.Shortcut>
@@ -137,4 +144,6 @@
   <CreateRequest bind:cmd={executeCmd} bind:request bind:collection />
 {:else if executeCmd === "Create Collection"}
   <CreateCollection bind:cmd={executeCmd} bind:collection />
+{:else if executeCmd === "Open Collection"}
+  <OpenCollection bind:cmd={executeCmd} bind:request bind:collection />
 {/if}

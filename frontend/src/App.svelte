@@ -379,6 +379,8 @@
           </p>
         </div>
 
+        <!-->I want this to resemble tmux sessions<-->
+        <!-->TODO will need to display all requests in the collection not just one<-->
         {#if currentRequest.name !== "temp"}
           <p>/</p>
           <p>{currentRequest.name}</p>

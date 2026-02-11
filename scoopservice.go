@@ -256,3 +256,45 @@ func (a *Backend) CreateRequest(c *Collection, r *Request) (bool, error) {
 
 	return true, nil
 }
+
+func (a *Backend) OpenCollections() ([]Collection, error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		App.Event.Emit("errMsg", err)
+		return nil, err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop", "Collections")
+
+	coll, err := os.ReadDir(scoopDir)
+	if err != nil {
+		App.Event.Emit("errMsg", err)
+		return nil, err
+	}
+
+	var availCollections []Collection
+	for _, c := range coll {
+		path := filepath.Join(scoopDir, c.Name())
+		ext := filepath.Ext(path)
+
+		if ext != ".json" {
+			continue
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			App.Event.Emit("errMsg", err)
+			return nil, err
+		}
+
+		var tempColl Collection
+		if err := json.Unmarshal(content, &tempColl); err != nil {
+			App.Event.Emit("errMsg", err)
+			return nil, err
+		}
+
+		availCollections = append(availCollections, tempColl)
+	}
+
+	return availCollections, nil
+}

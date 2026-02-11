@@ -39,6 +39,12 @@ export function ModelIntializer(
   });
 }
 
+export function OpenCollections(): $CancellablePromise<$models.Collection[]> {
+  return $Call.ByID(3631902541).then(($result: any) => {
+    return $$createType3($result);
+  });
+}
+
 export function SubmitRequest(s: $models.Scoop | null): $CancellablePromise<void> {
   return $Call.ByID(914496385, s);
 }
@@ -46,3 +52,5 @@ export function SubmitRequest(s: $models.Scoop | null): $CancellablePromise<void
 // Private type creation functions
 const $$createType0 = $models.Scoop.createFrom;
 const $$createType1 = $Create.Nullable($$createType0);
+const $$createType2 = $models.Collection.createFrom;
+const $$createType3 = $Create.Array($$createType2);
