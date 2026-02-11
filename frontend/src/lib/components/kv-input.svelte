@@ -89,13 +89,13 @@
 
         <div class="flex flex-1 gap-3 p-2 pr-10">
           <input
-            class="border-border w-full border px-1 text-green-300"
+            class="border-border focus:ring-offset-background w-full border px-1 text-green-300 focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
             placeholder="Key"
             bind:value={row.key}
             onchange={kvToRaw}
           />
           <input
-            class="border-border w-full border px-1 text-green-300"
+            class="border-border focus:ring-offset-background w-full border px-1 text-green-300 focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
             placeholder="Value"
             bind:value={row.value}
             onchange={kvToRaw}
@@ -106,10 +106,10 @@
   </div>
   <footer class="flex flex-row items-center justify-end gap-5 px-3 text-2xl">
     <div>
-      <button onclick={addRow}>+</button>
+      <button class="hover:cursor-pointer" onclick={addRow}>+</button>
     </div>
     <div>
-      <button onclick={removeRow}>-</button>
+      <button class="hover:cursor-pointer" onclick={removeRow}>-</button>
     </div>
   </footer>
 </div>

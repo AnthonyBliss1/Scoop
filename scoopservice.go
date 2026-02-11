@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -30,6 +33,7 @@ type KV struct {
 }
 
 type Request struct {
+	Name    string `json:"name"`
 	Method  Method `json:"method"`
 	URL     string `json:"url"`
 	Headers []KV   `json:"headers"`
@@ -45,9 +49,16 @@ type Response struct {
 	ContentType string `json:"content_type"`
 }
 
+type Collection struct {
+	Name     string    `json:"name"`
+	Requests []Request `json:"requests"`
+}
+
 type Scoop struct {
 	Request  Request  `json:"request"`
 	Response Response `json:"response"`
+
+	Collections []Collection `json:"collections"`
 }
 
 type Backend struct {
@@ -161,4 +172,87 @@ func (a *Backend) AddQueryParams(s *Scoop) error {
 
 	s.Request.URL = u.String()
 	return nil
+}
+
+func (a *Backend) CreateCollection(c *Collection) (bool, error) {
+	if c == nil {
+		err := errors.New("collection is nil")
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	if strings.ContainsAny(c.Name, `/\`) {
+		return false, errors.New("collection name cannot contain slashes")
+	}
+
+	base, err := os.UserConfigDir()
+	if err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop", "Collections")
+
+	// ensure /Scoop/Collections/ is created in UserConfigDir
+	if err := os.MkdirAll(scoopDir, 0o755); err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	b, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	path := filepath.Join(scoopDir, colFile)
+
+	if err := os.WriteFile(path, b, 0o644); err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (a *Backend) CreateRequest(c *Collection, r *Request) (bool, error) {
+	if c == nil || r == nil {
+		err := errors.New("collection or request is nil")
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	base, err := os.UserConfigDir()
+	if err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop", "Collections")
+
+	// ensure /Scoop/Collections/ is created in UserConfigDir
+	if err := os.MkdirAll(scoopDir, 0o755); err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	// add request to collection
+	c.Requests = append(c.Requests, *r)
+
+	b, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	path := filepath.Join(scoopDir, colFile)
+
+	if err := os.WriteFile(path, b, 0o644); err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	return true, nil
 }

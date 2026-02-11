@@ -10,6 +10,7 @@
   import { onDestroy, onMount } from "svelte";
   import CreateCollection from "./create-collection.svelte";
   import CreateRequest from "./create-request.svelte";
+  import type { Collection, Request } from "bindings/changeme";
 
   type Command =
     | "Create New Request"
@@ -19,17 +20,25 @@
     | "Configure Sync"
     | "Run Sync";
 
-  let cmd: Command = $state("Create New Request");
+  let cmd: Command = $derived.by((): Command => {
+    if (collection.name === "temp") {
+      return "Create Collection";
+    } else {
+      return "Create New Request";
+    }
+  });
   let executeCmd = $state<Command | null>(null);
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let { collection = $bindable<string>(""), request = $bindable<string>("") } = $props<{
-    collection: string;
-    request: string;
+  let { collection = $bindable<Collection>(), request = $bindable<Request>() } = $props<{
+    collection: Collection;
+    request: Request;
   }>();
 
   const onEnter = (event: KeyboardEvent) => {
+    if (executeCmd) return;
+
     if (event.key === "Enter") {
       switch (cmd) {
         case "Create New Request":
@@ -57,6 +66,7 @@
 
   onDestroy(() => {
     executeCmd = null;
+    document.removeEventListener("keydown", onEnter);
   });
 </script>
 
@@ -74,6 +84,7 @@
         <Command.Item
           value="Create New Request"
           class="hover:cursor-pointer"
+          disabled={collection.name === "temp" ? true : false}
           onclick={() => {
             executeCmd = "Create New Request";
           }}
@@ -123,7 +134,7 @@
     </Command.List>
   </Command.Root>
 {:else if executeCmd === "Create New Request"}
-  <CreateRequest bind:cmd={executeCmd} bind:request />
+  <CreateRequest bind:cmd={executeCmd} bind:request bind:collection />
 {:else if executeCmd === "Create Collection"}
   <CreateCollection bind:cmd={executeCmd} bind:collection />
 {/if}

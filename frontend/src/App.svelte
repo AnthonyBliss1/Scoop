@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Events } from "@wailsio/runtime";
   import { onDestroy, onMount } from "svelte";
-  import { Method, KV, Backend, Scoop, Response } from "../bindings/changeme";
+  import { Method, KV, Backend, Scoop, Response, Collection, Request } from "../bindings/changeme";
   import KvInput from "$lib/components/kv-input.svelte";
   import RawInput from "$lib/components/raw-input.svelte";
   import DotSpinner from "$lib/components/dot-spinner.svelte";
@@ -18,8 +18,9 @@
   let showCmdPalette: boolean = $state(false);
   let reqParamsHidden: boolean = $state(false);
 
-  let currentCollection: string = $state("temp");
-  let currentRequest: string = $state("");
+  // set default to temp
+  let currentCollection: Collection = $state(new Collection({ name: "temp" }));
+  let currentRequest: Request = $state(new Request({ name: "temp" }));
 
   let scoop: Scoop | null = $state(null);
   let method: Method = $state(Method.Empty);
@@ -359,7 +360,7 @@
           <DotSpinner />
         {/if}
         <button
-          class="border-border mr-4 ml-auto inline-flex h-5 w-5 items-center justify-center rounded-sm border text-2xl hover:bg-green-400 hover:text-black focus:outline-none"
+          class="border-border mr-4 ml-auto inline-flex h-5 w-5 items-center justify-center rounded-sm border text-2xl hover:cursor-pointer hover:bg-green-400 hover:text-black focus:outline-none"
           onclick={() => {
             reqParamsHidden = !reqParamsHidden;
           }}
@@ -372,13 +373,15 @@
     <div class="-mx-10 h-8 items-center rounded-b-sm bg-green-950/30">
       <div class="flex h-full flex-row items-center gap-5 px-10 text-sm text-green-500/90">
         <div class="flex flex-row gap-2">
-          <Package class={currentCollection === "temp" ? `text-blue-500/90` : ``} size={20} />
-          <p class={currentCollection === "temp" ? `text-blue-500/90` : ``}>{currentCollection}</p>
+          <Package class={currentCollection.name === "temp" ? `text-blue-500/90` : ``} size={20} />
+          <p class={currentCollection.name === "temp" ? `text-blue-500/90` : ``}>
+            {currentCollection.name}
+          </p>
         </div>
 
-        {#if currentRequest !== ""}
+        {#if currentRequest.name !== "temp"}
           <p>/</p>
-          <p>{currentRequest}</p>
+          <p>{currentRequest.name}</p>
         {/if}
       </div>
     </div>

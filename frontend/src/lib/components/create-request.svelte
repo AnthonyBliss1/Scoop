@@ -1,18 +1,43 @@
 <script lang="ts">
-  let { cmd = $bindable("Create New Request"), request = $bindable("") } = $props<{
+  import { toast } from "svelte-sonner";
+  import { Backend, Collection, Request } from "../../../bindings/changeme";
+
+  let {
+    cmd = $bindable("Create New Request"),
+    request = $bindable<Request>(),
+    collection = $bindable<Collection>(),
+  } = $props<{
     cmd: any;
-    request: string;
+    request: Request;
+    collection: Collection;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
 
+  let tempRequest: Request = $state(new Request());
   let newRequest: string = $state("");
 
-  function createRequest() {
-    if (newRequest === "") return;
+  async function createRequest() {
+    if (newRequest === "" || newRequest === "temp") {
+      toast.error("Please enter a valid name");
+      return;
+    }
 
-    request = newRequest;
-    cmd = null;
+    tempRequest.name = newRequest;
+
+    try {
+      const ok = await Backend.CreateRequest(collection, tempRequest);
+
+      if (ok) {
+        request = tempRequest;
+        collection.requests.push(request);
+        console.log(`Created Request: ${request.name}`);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      cmd = null;
+    }
   }
 
   $effect(() => {

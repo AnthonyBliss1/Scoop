@@ -17,6 +17,17 @@ export function AddQueryParams(s: $models.Scoop | null): $CancellablePromise<voi
   return $Call.ByID(1676166479, s);
 }
 
+export function CreateCollection(c: $models.Collection | null): $CancellablePromise<boolean> {
+  return $Call.ByID(918511024, c);
+}
+
+export function CreateRequest(
+  c: $models.Collection | null,
+  r: $models.Request | null,
+): $CancellablePromise<boolean> {
+  return $Call.ByID(2259185493, c, r);
+}
+
 export function ModelIntializer(
   method: $models.Method,
   reqURL: string,

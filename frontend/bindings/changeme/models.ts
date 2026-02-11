@@ -5,6 +5,35 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+export class Collection {
+  "name": string;
+  "requests": Request[];
+
+  /** Creates a new Collection instance. */
+  constructor($$source: Partial<Collection> = {}) {
+    if (!("name" in $$source)) {
+      this["name"] = "";
+    }
+    if (!("requests" in $$source)) {
+      this["requests"] = [];
+    }
+
+    Object.assign(this, $$source);
+  }
+
+  /**
+   * Creates a new Collection instance from a string or object.
+   */
+  static createFrom($$source: any = {}): Collection {
+    const $$createField1_0 = $$createType1;
+    let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
+    if ("requests" in $$parsedSource) {
+      $$parsedSource["requests"] = $$createField1_0($$parsedSource["requests"]);
+    }
+    return new Collection($$parsedSource as Partial<Collection>);
+  }
+}
+
 export class KV {
   "key": string;
   "value": string;
@@ -45,6 +74,7 @@ export enum Method {
 }
 
 export class Request {
+  "name": string;
   "method": Method;
   "url": string;
   "headers": KV[];
@@ -52,6 +82,9 @@ export class Request {
 
   /** Creates a new Request instance. */
   constructor($$source: Partial<Request> = {}) {
+    if (!("name" in $$source)) {
+      this["name"] = "";
+    }
     if (!("method" in $$source)) {
       this["method"] = Method.$zero;
     }
@@ -72,14 +105,14 @@ export class Request {
    * Creates a new Request instance from a string or object.
    */
   static createFrom($$source: any = {}): Request {
-    const $$createField2_0 = $$createType1;
-    const $$createField3_0 = $$createType1;
+    const $$createField3_0 = $$createType3;
+    const $$createField4_0 = $$createType3;
     let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
     if ("headers" in $$parsedSource) {
-      $$parsedSource["headers"] = $$createField2_0($$parsedSource["headers"]);
+      $$parsedSource["headers"] = $$createField3_0($$parsedSource["headers"]);
     }
     if ("query_params" in $$parsedSource) {
-      $$parsedSource["query_params"] = $$createField3_0($$parsedSource["query_params"]);
+      $$parsedSource["query_params"] = $$createField4_0($$parsedSource["query_params"]);
     }
     return new Request($$parsedSource as Partial<Request>);
   }
@@ -121,7 +154,7 @@ export class Response {
    * Creates a new Response instance from a string or object.
    */
   static createFrom($$source: any = {}): Response {
-    const $$createField2_0 = $$createType1;
+    const $$createField2_0 = $$createType3;
     let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
     if ("headers" in $$parsedSource) {
       $$parsedSource["headers"] = $$createField2_0($$parsedSource["headers"]);
@@ -133,6 +166,7 @@ export class Response {
 export class Scoop {
   "request": Request;
   "response": Response;
+  "collections": Collection[];
 
   /** Creates a new Scoop instance. */
   constructor($$source: Partial<Scoop> = {}) {
@@ -142,6 +176,9 @@ export class Scoop {
     if (!("response" in $$source)) {
       this["response"] = new Response();
     }
+    if (!("collections" in $$source)) {
+      this["collections"] = [];
+    }
 
     Object.assign(this, $$source);
   }
@@ -150,8 +187,9 @@ export class Scoop {
    * Creates a new Scoop instance from a string or object.
    */
   static createFrom($$source: any = {}): Scoop {
-    const $$createField0_0 = $$createType2;
-    const $$createField1_0 = $$createType3;
+    const $$createField0_0 = $$createType0;
+    const $$createField1_0 = $$createType4;
+    const $$createField2_0 = $$createType6;
     let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
     if ("request" in $$parsedSource) {
       $$parsedSource["request"] = $$createField0_0($$parsedSource["request"]);
@@ -159,12 +197,18 @@ export class Scoop {
     if ("response" in $$parsedSource) {
       $$parsedSource["response"] = $$createField1_0($$parsedSource["response"]);
     }
+    if ("collections" in $$parsedSource) {
+      $$parsedSource["collections"] = $$createField2_0($$parsedSource["collections"]);
+    }
     return new Scoop($$parsedSource as Partial<Scoop>);
   }
 }
 
 // Private type creation functions
-const $$createType0 = KV.createFrom;
+const $$createType0 = Request.createFrom;
 const $$createType1 = $Create.Array($$createType0);
-const $$createType2 = Request.createFrom;
-const $$createType3 = Response.createFrom;
+const $$createType2 = KV.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = Response.createFrom;
+const $$createType5 = Collection.createFrom;
+const $$createType6 = $Create.Array($$createType5);

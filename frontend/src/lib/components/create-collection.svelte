@@ -1,19 +1,37 @@
 <script lang="ts">
-  let { cmd = $bindable("Create Collection"), collection = $bindable("") } = $props<{
+  import { toast } from "svelte-sonner";
+  import { Backend, Collection } from "../../../bindings/changeme";
+
+  let { cmd = $bindable("Create Collection"), collection = $bindable<Collection>() } = $props<{
     cmd: any;
-    collection: string;
+    collection: Collection;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let newCollection: string = $state("");
+  let tempCollection: Collection = $state(new Collection());
+  let newCollection: string = $state(""); // using string since user is just prompted for a name
 
-  function createCollection() {
-    if (newCollection === "") return;
+  async function createCollection() {
+    if (newCollection === "" || newCollection === "temp") {
+      toast.error("Please enter a valid name");
+      return;
+    }
 
-    collection = newCollection;
-    cmd = null;
-    console.log(`Created Collection: ${collection}`);
+    tempCollection.name = newCollection;
+
+    try {
+      const ok = await Backend.CreateCollection(tempCollection);
+
+      if (ok) {
+        collection = tempCollection;
+        console.log(`Created Collection: ${collection.name}`);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      cmd = "Create New Request";
+    }
   }
 
   $effect(() => {
