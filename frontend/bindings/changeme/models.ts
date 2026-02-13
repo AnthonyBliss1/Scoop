@@ -164,20 +164,20 @@ export class Response {
 }
 
 export class Scoop {
-  "request": Request;
+  "current_collection": Collection;
+  "current_request": Request;
   "response": Response;
-  "collections": Collection[];
 
   /** Creates a new Scoop instance. */
   constructor($$source: Partial<Scoop> = {}) {
-    if (!("request" in $$source)) {
-      this["request"] = new Request();
+    if (!("current_collection" in $$source)) {
+      this["current_collection"] = new Collection();
+    }
+    if (!("current_request" in $$source)) {
+      this["current_request"] = new Request();
     }
     if (!("response" in $$source)) {
       this["response"] = new Response();
-    }
-    if (!("collections" in $$source)) {
-      this["collections"] = [];
     }
 
     Object.assign(this, $$source);
@@ -187,18 +187,18 @@ export class Scoop {
    * Creates a new Scoop instance from a string or object.
    */
   static createFrom($$source: any = {}): Scoop {
-    const $$createField0_0 = $$createType0;
-    const $$createField1_0 = $$createType4;
-    const $$createField2_0 = $$createType6;
+    const $$createField0_0 = $$createType4;
+    const $$createField1_0 = $$createType0;
+    const $$createField2_0 = $$createType5;
     let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
-    if ("request" in $$parsedSource) {
-      $$parsedSource["request"] = $$createField0_0($$parsedSource["request"]);
+    if ("current_collection" in $$parsedSource) {
+      $$parsedSource["current_collection"] = $$createField0_0($$parsedSource["current_collection"]);
+    }
+    if ("current_request" in $$parsedSource) {
+      $$parsedSource["current_request"] = $$createField1_0($$parsedSource["current_request"]);
     }
     if ("response" in $$parsedSource) {
-      $$parsedSource["response"] = $$createField1_0($$parsedSource["response"]);
-    }
-    if ("collections" in $$parsedSource) {
-      $$parsedSource["collections"] = $$createField2_0($$parsedSource["collections"]);
+      $$parsedSource["response"] = $$createField2_0($$parsedSource["response"]);
     }
     return new Scoop($$parsedSource as Partial<Scoop>);
   }
@@ -209,6 +209,5 @@ const $$createType0 = Request.createFrom;
 const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = KV.createFrom;
 const $$createType3 = $Create.Array($$createType2);
-const $$createType4 = Response.createFrom;
-const $$createType5 = Collection.createFrom;
-const $$createType6 = $Create.Array($$createType5);
+const $$createType4 = Collection.createFrom;
+const $$createType5 = Response.createFrom;

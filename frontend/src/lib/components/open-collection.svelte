@@ -8,23 +8,25 @@
   // will change this to bind a list of requests instead of single request
   let {
     cmd = $bindable("Open Collection"),
-    request = $bindable(),
+    allRequests = $bindable<Request[]>(),
     collection = $bindable<Collection>(),
+    currentRequest = $bindable<Request>(),
   } = $props<{
     cmd: any;
-    request: Request;
+    allRequests: Request[];
     collection: Collection;
+    currentRequest: Request;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
-  let availCollections: Collection[] = $state<Collection[]>([]);
+  let availCollections: Collection[] | null = $state<Collection[] | null>(null);
 
   async function OpenCollections() {
     try {
       availCollections = await Backend.OpenCollections();
 
       if (availCollections.length > 0) {
-        console.log(`Loaded ${availCollections.length} Collections`);
+        console.log(`Loaded ${availCollections.length} Collection(s)`);
       }
     } catch (error) {
       console.error(error);
@@ -44,22 +46,26 @@
   <Command.List>
     <Command.Empty>No collections found</Command.Empty>
 
-    <Command.Group heading="Collections">
-      {#each availCollections as c}
-        <Command.Item
-          class="hover:cursor-pointer"
-          value={c.name}
-          onclick={() => {
-            collection = c;
-            request = c.requests[0];
-            cmd = null;
-          }}
-        >
-          <p class="text-green-500">{c.requests.length}</p>
-          <Send class="text-green-500" />
-          <span class="text-green-300">{c.name}</span>
-        </Command.Item>
-      {/each}
-    </Command.Group>
+    {#if availCollections && availCollections.length > 0}
+      <Command.Group heading="Collections">
+        {#each availCollections as c}
+          <Command.Item
+            class="hover:cursor-pointer"
+            value={c.name}
+            onclick={() => {
+              collection = c;
+              allRequests = c.requests;
+              currentRequest = allRequests[0];
+              console.log(`allRequests length : ${allRequests.length}`);
+              cmd = null;
+            }}
+          >
+            <p class="text-green-500">{c.requests.length}</p>
+            <Send class="text-green-500" />
+            <span class="text-green-300">{c.name}</span>
+          </Command.Item>
+        {/each}
+      </Command.Group>
+    {/if}
   </Command.List>
 </Command.Root>

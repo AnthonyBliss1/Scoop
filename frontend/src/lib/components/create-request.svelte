@@ -4,12 +4,14 @@
 
   let {
     cmd = $bindable("Create New Request"),
-    request = $bindable<Request>(),
+    allRequests = $bindable<Request[]>(),
     collection = $bindable<Collection>(),
+    currentRequest = $bindable<Request>(),
   } = $props<{
     cmd: any;
-    request: Request;
+    allRequests: Request[];
     collection: Collection;
+    currentRequest: Request;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
@@ -29,11 +31,12 @@
       const ok = await Backend.CreateRequest(collection, tempRequest);
 
       if (ok) {
-        request = tempRequest;
+        allRequests.push(tempRequest);
+        currentRequest = allRequests[0];
 
         // this seems to work here but not sure why, need to investigate
-        collection.requests.push(request);
-        console.log(`Created Request: ${request.name}`);
+        collection.requests.push(tempRequest);
+        console.log(`Created Request: ${tempRequest.name}`);
       }
     } catch (error) {
       console.error(error);

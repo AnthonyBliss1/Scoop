@@ -45,6 +45,17 @@ export function OpenCollections(): $CancellablePromise<$models.Collection[]> {
   });
 }
 
+export function SaveCollection(c: $models.Collection | null): $CancellablePromise<boolean> {
+  return $Call.ByID(711771153, c);
+}
+
+export function SaveRequest(
+  r: $models.Request | null,
+  c: $models.Collection | null,
+): $CancellablePromise<boolean> {
+  return $Call.ByID(2504038450, r, c);
+}
+
 export function SubmitRequest(s: $models.Scoop | null): $CancellablePromise<void> {
   return $Call.ByID(914496385, s);
 }

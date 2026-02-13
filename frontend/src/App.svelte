@@ -20,6 +20,7 @@
 
   // set default to temp
   let currentCollection: Collection = $state(new Collection({ name: "temp" }));
+  let allRequests: Request[] = $state([]);
   let currentRequest: Request = $state(new Request({ name: "temp" }));
 
   let scoop: Scoop | null = $state(null);
@@ -68,6 +69,22 @@
     }
   }
 
+  // TODO hydrate/persist headers, qparams, and response
+  // im thinking responses need to be stored within the request struct
+  function hydrateFormFromRequest(r: Request) {
+    method = (r.method ?? Method.Empty) as Method;
+    url = r.url ?? "";
+  }
+
+  function persistFormToRequest(r: Request) {
+    r.method = method;
+    r.url = url;
+  }
+
+  $effect(() => {
+    hydrateFormFromRequest(currentRequest);
+  });
+
   async function onSend(method: Method, url: string) {
     let inputErr: string = "";
 
@@ -88,6 +105,7 @@
 
     rawToHeaders();
     rawToQParams();
+    persistFormToRequest(currentRequest);
 
     try {
       scoop = await Backend.ModelIntializer(method, url, headers, queryParams);
@@ -95,6 +113,17 @@
     } catch (error) {
       console.error(error);
       loading = false;
+    }
+  }
+
+  async function onSwitchRequest(): Promise<boolean> {
+    try {
+      persistFormToRequest(currentRequest);
+      const ok = await Backend.SaveRequest(currentRequest, currentCollection);
+      return ok;
+    } catch (error) {
+      console.log(error);
+      return false;
     }
   }
 
@@ -148,13 +177,27 @@
     }
   };
 
+  const switchRequest = async (event: KeyboardEvent) => {
+    if (event.ctrlKey && event.key > "0" && event.key <= "9") {
+      const n: number = Number(event.key);
+
+      if (n > allRequests.length) return;
+
+      console.log(`Switch Request Fired! Ctrl + ${n}`);
+
+      const ok = await onSwitchRequest();
+      if (ok) currentRequest = allRequests[n - 1];
+    }
+  };
+
   onMount(() => {
     onRspMsg = Events.On("respMsg", async (event: any) => {
       scoop = event.data as Scoop;
 
       // want to use reactive plain objects in UI since Svelete reactivity doesnt like classes
       response = scoop.response;
-      url = scoop?.request.url ?? "";
+      url = scoop?.current_request.url ?? "";
+      persistFormToRequest(currentRequest);
 
       loading = false;
     });
@@ -167,6 +210,7 @@
 
     document.addEventListener("keydown", openCmdPalette);
     document.addEventListener("keydown", hideReqParams);
+    document.addEventListener("keydown", switchRequest);
   });
 
   // cleanup events on destroy
@@ -176,6 +220,7 @@
 
     document.removeEventListener("keydown", openCmdPalette);
     document.removeEventListener("keydown", hideReqParams);
+    document.removeEventListener("keydown", switchRequest);
   });
 </script>
 
@@ -374,16 +419,22 @@
       <div class="flex h-full flex-row items-center gap-5 px-10 text-sm text-green-500/90">
         <div class="flex flex-row gap-2">
           <Package class={currentCollection.name === "temp" ? `text-blue-500/90` : ``} size={20} />
-          <p class={currentCollection.name === "temp" ? `text-blue-500/90` : ``}>
+          <p class={currentCollection.name === "temp" ? `text-blue-500/90` : `text-green-400`}>
             {currentCollection.name}
           </p>
         </div>
 
-        <!-->I want this to resemble tmux sessions<-->
-        <!-->TODO will need to display all requests in the collection not just one<-->
         {#if currentRequest.name !== "temp"}
-          <p>/</p>
-          <p>{currentRequest.name}</p>
+          {#each allRequests as request, i}
+            <div class="flex flex-row gap-1">
+              <p class={currentRequest === request ? `text-blue-500` : `text-green-400`}>
+                [{i + 1}]
+              </p>
+              <p class={currentRequest === request ? `text-blue-500` : `text-green-400`}>
+                {request.name}
+              </p>
+            </div>
+          {/each}
         {/if}
       </div>
     </div>
@@ -407,7 +458,7 @@
 
       <!--CmdPalette-->
       <div class=" relative z-101 w-full max-w-xl shadow-lg">
-        <CmdPalette bind:collection={currentCollection} bind:request={currentRequest} />
+        <CmdPalette bind:collection={currentCollection} bind:allRequests bind:currentRequest />
       </div>
     </div>
   {/if}

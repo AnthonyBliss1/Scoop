@@ -32,27 +32,15 @@
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let { collection = $bindable<Collection>(), request = $bindable<Request>() } = $props<{
+  let {
+    collection = $bindable<Collection>(),
+    allRequests = $bindable<Request[]>(),
+    currentRequest = $bindable<Request>(),
+  } = $props<{
     collection: Collection;
-    request: Request;
+    allRequests: Request[];
+    currentRequest: Request;
   }>();
-
-  const onEnter = (event: KeyboardEvent) => {
-    if (!executeCmd) return;
-
-    if (event.key === "Enter") {
-      switch (cmd) {
-        case "Create New Request":
-          executeCmd = "Create New Request";
-          break;
-        case "Create Collection":
-          executeCmd = "Create Collection";
-          break;
-        default:
-          break;
-      }
-    }
-  };
 
   $effect(() => {
     if (!executeCmd) {
@@ -62,12 +50,10 @@
 
   onMount(() => {
     inputEl?.focus();
-    document.addEventListener("keydown", onEnter);
   });
 
   onDestroy(() => {
     executeCmd = null;
-    document.removeEventListener("keydown", onEnter);
   });
 </script>
 
@@ -122,17 +108,17 @@
       </Command.Group>
 
       <Command.Group heading="Cloud">
-        <Command.Item value="Create DNS Alias">
+        <Command.Item disabled={true} value="Create DNS Alias">
           <Server class="text-green-500" />
           <span class="text-green-300">Create DNS Alias</span>
           <Command.Shortcut class="text-green-500">⌘D</Command.Shortcut>
         </Command.Item>
-        <Command.Item value="Configure Sync">
+        <Command.Item disabled={true} value="Configure Sync">
           <Database class="text-green-500" />
           <span class="text-green-300">Configure Sync</span>
           <Command.Shortcut class="text-green-500">⌘C</Command.Shortcut>
         </Command.Item>
-        <Command.Item value="Run Sync">
+        <Command.Item disabled={true} value="Run Sync">
           <CloudDownload class="text-green-500" />
           <span class="text-green-300">Run Sync</span>
           <Command.Shortcut class="text-green-500">⌘S</Command.Shortcut>
@@ -141,9 +127,9 @@
     </Command.List>
   </Command.Root>
 {:else if executeCmd === "Create New Request"}
-  <CreateRequest bind:cmd={executeCmd} bind:request bind:collection />
+  <CreateRequest bind:cmd={executeCmd} bind:allRequests bind:collection bind:currentRequest />
 {:else if executeCmd === "Create Collection"}
   <CreateCollection bind:cmd={executeCmd} bind:collection />
 {:else if executeCmd === "Open Collection"}
-  <OpenCollection bind:cmd={executeCmd} bind:request bind:collection />
+  <OpenCollection bind:cmd={executeCmd} bind:allRequests bind:collection bind:currentRequest />
 {/if}
