@@ -1,21 +1,21 @@
 <script lang="ts">
   import Send from "@lucide/svelte/icons/send";
   import * as Command from "$lib/components/ui/command/index.js";
-  import { Backend, Collection, Request } from "../../../bindings/changeme";
+  import { Backend, Collection, Scoop } from "../../../bindings/changeme";
   import { onMount } from "svelte";
 
   // binding current collection and request to component
   // will change this to bind a list of requests instead of single request
   let {
     cmd = $bindable("Open Collection"),
-    allRequests = $bindable<Request[]>(),
+    allScoops = $bindable<Scoop[]>(),
     collection = $bindable<Collection>(),
-    currentRequest = $bindable<Request>(),
+    currentScoop = $bindable<Scoop>(),
   } = $props<{
     cmd: any;
-    allRequests: Request[];
+    allScoops: Scoop[];
     collection: Collection;
-    currentRequest: Request;
+    currentScoop: Scoop;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
@@ -54,13 +54,13 @@
             value={c.name}
             onclick={() => {
               collection = c;
-              allRequests = c.requests;
-              currentRequest = allRequests[0];
-              console.log(`allRequests length : ${allRequests.length}`);
+              allScoops = c.scoops;
+              currentScoop = allScoops[0];
+              console.log(`allScoops length : ${allScoops.length}`);
               cmd = null;
             }}
           >
-            <p class="text-green-500">{c.requests.length}</p>
+            <p class="text-green-500">{c.scoops.length}</p>
             <Send class="text-green-500" />
             <span class="text-green-300">{c.name}</span>
           </Command.Item>

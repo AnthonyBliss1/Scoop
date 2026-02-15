@@ -13,13 +13,12 @@ import * as main$0 from "../../../../../changeme/models.js";
 function configure() {
   Object.freeze(
     Object.assign($Create.Events, {
-      respMsg: $$createType1,
+      respMsg: $$createType0,
     }),
   );
 }
 
 // Private type creation functions
 const $$createType0 = main$0.Scoop.createFrom;
-const $$createType1 = $Create.Nullable($$createType0);
 
 configure();

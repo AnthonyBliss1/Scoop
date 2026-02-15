@@ -10,7 +10,7 @@
   import { onDestroy, onMount } from "svelte";
   import CreateCollection from "./create-collection.svelte";
   import CreateRequest from "./create-request.svelte";
-  import type { Collection, Request } from "bindings/changeme";
+  import type { Collection, Scoop } from "bindings/changeme";
   import OpenCollection from "./open-collection.svelte";
 
   type Command =
@@ -34,12 +34,12 @@
 
   let {
     collection = $bindable<Collection>(),
-    allRequests = $bindable<Request[]>(),
-    currentRequest = $bindable<Request>(),
+    allScoops = $bindable<Scoop[]>(),
+    currentScoop = $bindable<Scoop>(),
   } = $props<{
     collection: Collection;
-    allRequests: Request[];
-    currentRequest: Request;
+    allScoops: Scoop[];
+    currentScoop: Scoop;
   }>();
 
   $effect(() => {
@@ -127,9 +127,9 @@
     </Command.List>
   </Command.Root>
 {:else if executeCmd === "Create New Request"}
-  <CreateRequest bind:cmd={executeCmd} bind:allRequests bind:collection bind:currentRequest />
+  <CreateRequest bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
 {:else if executeCmd === "Create Collection"}
   <CreateCollection bind:cmd={executeCmd} bind:collection />
 {:else if executeCmd === "Open Collection"}
-  <OpenCollection bind:cmd={executeCmd} bind:allRequests bind:collection bind:currentRequest />
+  <OpenCollection bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
 {/if}

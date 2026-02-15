@@ -13,55 +13,55 @@ import {
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
-export function AddQueryParams(s: $models.Scoop | null): $CancellablePromise<void> {
+export function AddQueryParams(s: $models.Scoop): $CancellablePromise<void> {
   return $Call.ByID(1676166479, s);
 }
 
-export function CreateCollection(c: $models.Collection | null): $CancellablePromise<boolean> {
+export function CreateCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(918511024, c);
 }
 
 export function CreateRequest(
-  c: $models.Collection | null,
-  r: $models.Request | null,
+  c: $models.Collection,
+  r: $models.Request,
 ): $CancellablePromise<boolean> {
   return $Call.ByID(2259185493, c, r);
 }
 
 export function ModelIntializer(
+  name: string,
   method: $models.Method,
   reqURL: string,
   headers: $models.KV[],
   qParams: $models.KV[],
-): $CancellablePromise<$models.Scoop | null> {
-  return $Call.ByID(3595892640, method, reqURL, headers, qParams).then(($result: any) => {
-    return $$createType1($result);
+): $CancellablePromise<$models.Request> {
+  return $Call.ByID(3595892640, name, method, reqURL, headers, qParams).then(($result: any) => {
+    return $$createType0($result);
   });
 }
 
 export function OpenCollections(): $CancellablePromise<$models.Collection[]> {
   return $Call.ByID(3631902541).then(($result: any) => {
-    return $$createType3($result);
+    return $$createType2($result);
   });
 }
 
-export function SaveCollection(c: $models.Collection | null): $CancellablePromise<boolean> {
+export function SaveCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(711771153, c);
 }
 
 export function SaveRequest(
-  r: $models.Request | null,
-  c: $models.Collection | null,
+  r: $models.Request,
+  c: $models.Collection,
 ): $CancellablePromise<boolean> {
   return $Call.ByID(2504038450, r, c);
 }
 
-export function SubmitRequest(s: $models.Scoop | null): $CancellablePromise<void> {
+export function SubmitRequest(s: $models.Scoop): $CancellablePromise<void> {
   return $Call.ByID(914496385, s);
 }
 
 // Private type creation functions
-const $$createType0 = $models.Scoop.createFrom;
-const $$createType1 = $Create.Nullable($$createType0);
-const $$createType2 = $models.Collection.createFrom;
-const $$createType3 = $Create.Array($$createType2);
+const $$createType0 = $models.Request.createFrom;
+const $$createType1 = $models.Collection.createFrom;
+const $$createType2 = $Create.Array($$createType1);

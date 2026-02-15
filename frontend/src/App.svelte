@@ -20,18 +20,18 @@
 
   // set default to temp
   let currentCollection: Collection = $state(new Collection({ name: "temp" }));
-  let allRequests: Request[] = $state([]);
-  let currentRequest: Request = $state(new Request({ name: "temp" }));
+  let allScoops: Scoop[] = $state([]);
+  let currentScoop: Scoop = $state(new Scoop({ request: new Request({ name: "temp" }) }));
 
-  let scoop: Scoop | null = $state(null);
   let method: Method = $state(Method.Empty);
   let url: string = $state("");
+  let response: Response = $state(new Response());
 
   let headers: KV[] = $state([]);
   let queryParams: KV[] = $state([]);
 
   // need this response value, since Svelte reactivity does not play nice with mutated class instances
-  let response: Response | undefined = $state();
+  // let response: Response | undefined = $state();
   let loading: boolean = $state(false);
 
   type TType = "raw" | "key-value" | "json";
@@ -71,18 +71,18 @@
 
   // TODO hydrate/persist headers, qparams, and response
   // im thinking responses need to be stored within the request struct
-  function hydrateFormFromRequest(r: Request) {
-    method = (r.method ?? Method.Empty) as Method;
-    url = r.url ?? "";
+  function hydrateFormFromRequest(s: Scoop) {
+    method = (s.request.method ?? Method.Empty) as Method;
+    url = s.request.url ?? "";
   }
 
-  function persistFormToRequest(r: Request) {
-    r.method = method;
-    r.url = url;
+  function persistFormToRequest(s: Scoop) {
+    s.request.method = method;
+    s.request.url = url;
   }
 
   $effect(() => {
-    hydrateFormFromRequest(currentRequest);
+    hydrateFormFromRequest(currentScoop);
   });
 
   async function onSend(method: Method, url: string) {
@@ -100,16 +100,16 @@
       return;
     }
 
-    response = undefined;
+    currentScoop.response = new Response();
     loading = true;
 
     rawToHeaders();
     rawToQParams();
-    persistFormToRequest(currentRequest);
+    persistFormToRequest(currentScoop);
 
     try {
-      scoop = await Backend.ModelIntializer(method, url, headers, queryParams);
-      await Backend.SubmitRequest(scoop);
+      currentScoop.request = await Backend.ModelIntializer(method, url, headers, queryParams);
+      await Backend.SubmitRequest(currentScoop);
     } catch (error) {
       console.error(error);
       loading = false;
@@ -118,8 +118,8 @@
 
   async function onSwitchRequest(): Promise<boolean> {
     try {
-      persistFormToRequest(currentRequest);
-      const ok = await Backend.SaveRequest(currentRequest, currentCollection);
+      persistFormToRequest(currentScoop);
+      const ok = await Backend.SaveRequest(currentScoop.request, currentCollection);
       return ok;
     } catch (error) {
       console.log(error);
@@ -181,23 +181,23 @@
     if (event.ctrlKey && event.key > "0" && event.key <= "9") {
       const n: number = Number(event.key);
 
-      if (n > allRequests.length) return;
+      if (n > allScoops.length) return;
 
       console.log(`Switch Request Fired! Ctrl + ${n}`);
 
       const ok = await onSwitchRequest();
-      if (ok) currentRequest = allRequests[n - 1];
+      if (ok) currentScoop = allScoops[n - 1];
     }
   };
 
   onMount(() => {
     onRspMsg = Events.On("respMsg", async (event: any) => {
-      scoop = event.data as Scoop;
+      const s = event.data as Scoop;
 
       // want to use reactive plain objects in UI since Svelete reactivity doesnt like classes
-      response = scoop.response;
-      url = scoop?.current_request.url ?? "";
-      persistFormToRequest(currentRequest);
+      response = s.response;
+      // url = currentScoop.request.url;
+      persistFormToRequest(currentScoop);
 
       loading = false;
     });
@@ -397,10 +397,10 @@
       <!-->Response Title Section<-->
       <div class="mb-3 flex flex-row gap-2">
         <p class="px-3 text-sm underline underline-offset-3">Response</p>
-        {#if response}
-          <p class="border-border border px-2 text-sm">{response.status}</p>
-          <p class="border-border border px-2 text-sm">{response.content_type}</p>
-          <p class="border-border border px-2 text-sm">{response?.duration} ms</p>
+        {#if currentScoop.response.body !== ""}
+          <p class="border-border border px-2 text-sm">{currentScoop.response.status}</p>
+          <p class="border-border border px-2 text-sm">{currentScoop.response.content_type}</p>
+          <p class="border-border border px-2 text-sm">{currentScoop.response?.duration} ms</p>
         {:else if loading}
           <DotSpinner />
         {/if}
@@ -413,7 +413,10 @@
           {reqParamsHidden === false ? "+" : "-"}
         </button>
       </div>
-      <ResponseViewer value={response?.body ?? ""} contentType={response?.content_type ?? ""} />
+      <ResponseViewer
+        value={currentScoop.response.body ?? ""}
+        contentType={currentScoop.response.content_type ?? ""}
+      />
     </div>
     <div class="-mx-10 h-8 items-center rounded-b-sm bg-green-950/30">
       <div class="flex h-full flex-row items-center gap-5 px-10 text-sm text-green-500/90">
@@ -424,14 +427,14 @@
           </p>
         </div>
 
-        {#if currentRequest.name !== "temp"}
-          {#each allRequests as request, i}
+        {#if currentScoop.request.name !== "temp"}
+          {#each allScoops as scoop, i}
             <div class="flex flex-row gap-1">
-              <p class={currentRequest === request ? `text-blue-500` : `text-green-400`}>
+              <p class={currentScoop === scoop ? `text-blue-500` : `text-green-400`}>
                 [{i + 1}]
               </p>
-              <p class={currentRequest === request ? `text-blue-500` : `text-green-400`}>
-                {request.name}
+              <p class={currentScoop === scoop ? `text-blue-500` : `text-green-400`}>
+                {scoop.request.name}
               </p>
             </div>
           {/each}
@@ -458,7 +461,7 @@
 
       <!--CmdPalette-->
       <div class=" relative z-101 w-full max-w-xl shadow-lg">
-        <CmdPalette bind:collection={currentCollection} bind:allRequests bind:currentRequest />
+        <CmdPalette bind:collection={currentCollection} bind:allScoops bind:currentScoop />
       </div>
     </div>
   {/if}

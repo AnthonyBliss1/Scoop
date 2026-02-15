@@ -49,53 +49,70 @@ type Response struct {
 	ContentType string `json:"content_type"`
 }
 
-type Collection struct {
-	Name     string    `json:"name"`
-	Requests []Request `json:"requests"`
+type Scoop struct {
+	Request  Request  `json:"request"`
+	Response Response `json:"response"`
 }
 
-type Scoop struct {
-	CurrentCollection Collection `json:"current_collection"`
-	CurrentRequest    Request    `json:"current_request"`
-	Response          Response   `json:"response"`
+type Collection struct {
+	Name   string  `json:"name"`
+	Scoops []Scoop `json:"scoops"`
 }
 
 type Backend struct {
-	ctx context.Context
+	context context.Context
 }
 
 // Initializes the Scoop model by attaching method, url, headers, query params, and body (body soon)
 
-func (a *Backend) ModelIntializer(method Method, reqURL string, headers []KV, qParams []KV) (*Scoop, error) {
-	var scoop Scoop
+func (b *Backend) ModelIntializer(name string, method Method, reqURL string, headers []KV, qParams []KV) (Request, error) {
+	var r Request
 
-	scoop.CurrentRequest.Method = method
-	scoop.CurrentRequest.URL = reqURL
-	scoop.CurrentRequest.Headers = headers
-	scoop.CurrentRequest.QParams = qParams
+	r.Name = name
+	r.Method = method
+	r.URL = reqURL
+	r.Headers = headers
+	r.QParams = qParams
 
-	return &scoop, nil
+	return r, nil
 }
 
-// Simple func to submit request and store response back to the struct
+func (b *Backend) AddQueryParams(s Scoop) error {
+	u, err := url.Parse(s.Request.URL)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return err
+	}
+	query := url.Values{}
 
-func (a *Backend) SubmitRequest(s *Scoop) {
+	for _, param := range s.Request.QParams {
+		query.Add(param.Key, param.Value)
+	}
+
+	u.RawQuery = query.Encode()
+
+	s.Request.URL = u.String()
+
+	return nil
+}
+
+func (b *Backend) SubmitRequest(s Scoop) {
 	go func() {
 		var r Response
 
 		client := http.Client{}
 
 		// add query params to url
-		a.AddQueryParams(s)
+		b.AddQueryParams(s)
 
-		req, err := http.NewRequest(string(s.CurrentRequest.Method), s.CurrentRequest.URL, nil)
+		req, err := http.NewRequest(string(s.Request.Method), s.Request.URL, nil)
 		if err != nil {
 			App.Event.Emit("errMsg", fmt.Sprint(err))
 			return
 		}
 
 		// add headers to request
-		for _, h := range s.CurrentRequest.Headers {
+		for _, h := range s.Request.Headers {
 			if h.Key == "" || h.Value == "" {
 				continue
 			}
@@ -151,35 +168,12 @@ func (a *Backend) SubmitRequest(s *Scoop) {
 		r.Body = sBody
 		s.Response = r // store within the scoop
 
+		// emit event with Scoop containing the response
 		App.Event.Emit("respMsg", s)
 	}()
 }
 
-func (a *Backend) AddQueryParams(s *Scoop) error {
-	u, err := url.Parse(s.CurrentRequest.URL)
-	if err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return err
-	}
-	query := url.Values{}
-
-	for _, param := range s.CurrentRequest.QParams {
-		query.Add(param.Key, param.Value)
-	}
-
-	u.RawQuery = query.Encode()
-
-	s.CurrentRequest.URL = u.String()
-	return nil
-}
-
-func (a *Backend) CreateCollection(c *Collection) (bool, error) {
-	if c == nil {
-		err := errors.New("collection is nil")
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
+func (b *Backend) CreateCollection(c Collection) (bool, error) {
 	if strings.ContainsAny(c.Name, `/\`) {
 		err := errors.New("collection name cannot contain slashes")
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -200,7 +194,7 @@ func (a *Backend) CreateCollection(c *Collection) (bool, error) {
 		return false, err
 	}
 
-	b, err := json.MarshalIndent(c, "", "  ")
+	j, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
@@ -209,7 +203,7 @@ func (a *Backend) CreateCollection(c *Collection) (bool, error) {
 	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
 	path := filepath.Join(scoopDir, colFile)
 
-	if err := os.WriteFile(path, b, 0o644); err != nil {
+	if err := os.WriteFile(path, j, 0o644); err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
 	}
@@ -217,13 +211,7 @@ func (a *Backend) CreateCollection(c *Collection) (bool, error) {
 	return true, nil
 }
 
-func (a *Backend) CreateRequest(c *Collection, r *Request) (bool, error) {
-	if c == nil || r == nil {
-		err := errors.New("collection or request is nil")
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
+func (b *Backend) CreateRequest(c Collection, r Request) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -238,10 +226,10 @@ func (a *Backend) CreateRequest(c *Collection, r *Request) (bool, error) {
 		return false, err
 	}
 
-	// add request to collection
-	c.Requests = append(c.Requests, *r)
+	// add request to current collection (no response)
+	c.Scoops = append(c.Scoops, Scoop{Request: r})
 
-	b, err := json.MarshalIndent(c, "", "  ")
+	j, err := json.MarshalIndent(c.Scoops, "", "  ")
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
@@ -250,7 +238,7 @@ func (a *Backend) CreateRequest(c *Collection, r *Request) (bool, error) {
 	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
 	path := filepath.Join(scoopDir, colFile)
 
-	if err := os.WriteFile(path, b, 0o644); err != nil {
+	if err := os.WriteFile(path, j, 0o644); err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
 	}
@@ -258,7 +246,7 @@ func (a *Backend) CreateRequest(c *Collection, r *Request) (bool, error) {
 	return true, nil
 }
 
-func (a *Backend) OpenCollections() ([]Collection, error) {
+func (b *Backend) OpenCollections() ([]Collection, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -305,13 +293,7 @@ func (a *Backend) OpenCollections() ([]Collection, error) {
 // nearly identical to the CreateCollection function
 // should make one function for create and save (WriteCollection)
 
-func (a *Backend) SaveCollection(c *Collection) (bool, error) {
-	if c == nil {
-		err := errors.New("collection is nil")
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
+func (b *Backend) SaveCollection(c Collection) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -326,7 +308,7 @@ func (a *Backend) SaveCollection(c *Collection) (bool, error) {
 		return false, err
 	}
 
-	b, err := json.MarshalIndent(c, "", "  ")
+	j, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
@@ -335,7 +317,7 @@ func (a *Backend) SaveCollection(c *Collection) (bool, error) {
 	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
 	path := filepath.Join(scoopDir, colFile)
 
-	if err := os.WriteFile(path, b, 0o644); err != nil {
+	if err := os.WriteFile(path, j, 0o644); err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
 	}
@@ -343,13 +325,7 @@ func (a *Backend) SaveCollection(c *Collection) (bool, error) {
 	return true, nil
 }
 
-func (a *Backend) SaveRequest(r *Request, c *Collection) (bool, error) {
-	if c == nil || r == nil {
-		err := errors.New("collection or request is nil")
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
+func (b *Backend) SaveRequest(r Request, c Collection) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -364,13 +340,13 @@ func (a *Backend) SaveRequest(r *Request, c *Collection) (bool, error) {
 		return false, err
 	}
 
-	for _, request := range c.Requests {
-		if request.Name == r.Name {
-			request = *r
+	for _, scoop := range c.Scoops {
+		if scoop.Request.Name == r.Name {
+			scoop.Request = r
 		}
 	}
 
-	b, err := json.MarshalIndent(c, "", "  ")
+	j, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
@@ -379,7 +355,7 @@ func (a *Backend) SaveRequest(r *Request, c *Collection) (bool, error) {
 	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
 	path := filepath.Join(scoopDir, colFile)
 
-	if err := os.WriteFile(path, b, 0o644); err != nil {
+	if err := os.WriteFile(path, j, 0o644); err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
 	}

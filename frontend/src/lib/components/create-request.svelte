@@ -1,22 +1,22 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { Backend, Collection, Request } from "../../../bindings/changeme";
+  import { Backend, Collection, Request, Scoop } from "../../../bindings/changeme";
 
   let {
     cmd = $bindable("Create New Request"),
-    allRequests = $bindable<Request[]>(),
+    allScoops = $bindable<Scoop[]>(),
     collection = $bindable<Collection>(),
-    currentRequest = $bindable<Request>(),
+    currentScoop = $bindable<Scoop>(),
   } = $props<{
     cmd: any;
-    allRequests: Request[];
+    allScoops: Scoop[];
     collection: Collection;
-    currentRequest: Request;
+    currentScoop: Scoop;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let tempRequest: Request = $state(new Request());
+  let tempScoop: Scoop = $state(new Scoop({ request: new Request() }));
   let newRequest: string = $state("");
 
   async function createRequest() {
@@ -25,18 +25,18 @@
       return;
     }
 
-    tempRequest.name = newRequest;
+    tempScoop.request.name = newRequest;
 
     try {
-      const ok = await Backend.CreateRequest(collection, tempRequest);
+      const ok = await Backend.CreateRequest(collection, tempScoop.request);
 
       if (ok) {
-        allRequests.push(tempRequest);
-        currentRequest = allRequests[0];
+        allScoops.push(tempScoop);
+        currentScoop = allScoops[0];
 
         // this seems to work here but not sure why, need to investigate
-        collection.requests.push(tempRequest);
-        console.log(`Created Request: ${tempRequest.name}`);
+        collection.scoops.push(tempScoop);
+        console.log(`Created Request: ${tempScoop.request.name}`);
       }
     } catch (error) {
       console.error(error);
