@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Events } from "@wailsio/runtime";
   import { onDestroy, onMount } from "svelte";
-  import { Method, KV, Backend, Scoop, Response, Collection, Request } from "../bindings/changeme";
+  import { Method, KV, Backend, Scoop, Response, Collection } from "../bindings/changeme";
   import KvInput from "$lib/components/kv-input.svelte";
   import RawInput from "$lib/components/raw-input.svelte";
   import DotSpinner from "$lib/components/dot-spinner.svelte";
@@ -21,7 +21,7 @@
   // set default to temp
   let currentCollection: Collection = $state(new Collection({ name: "temp" }));
   let allScoops: Scoop[] = $state([]);
-  let currentScoop: Scoop = $state(new Scoop({ request: new Request({ name: "temp" }) }));
+  let currentScoop: Scoop = $state(new Scoop({ name: "temp" }));
 
   let method: Method = $state(Method.Empty);
   let url: string = $state("");
@@ -29,23 +29,17 @@
 
   let headers: KV[] = $state([]);
   let queryParams: KV[] = $state([]);
+  let body: KV[] = $state([]);
 
-  // need this response value, since Svelte reactivity does not play nice with mutated class instances
-  // let response: Response | undefined = $state();
   let loading: boolean = $state(false);
 
   type TType = "raw" | "key-value" | "json";
 
-  // TODO test swapping out the RawInput component for a monaco-editor
   let headerTType: TType = $state("raw");
-  let headerRawContent: string = $state("");
-
   let qParamTType: TType = $state("raw");
-  let qParamRawContent: string = $state("");
 
-  // TODO support body in request on backend
+  // TODO: support body payloads in request on backend
   let bodyTType: TType = $state("json");
-  let bodyRawContent: string = $state("");
 
   function methodColor(method: string): string {
     switch (method) {
@@ -69,16 +63,20 @@
     }
   }
 
-  // TODO hydrate/persist headers, qparams, and response
-  // im thinking responses need to be stored within the request struct
   function hydrateFormFromRequest(s: Scoop) {
     method = (s.request.method ?? Method.Empty) as Method;
     url = s.request.url ?? "";
+    response = s.response;
+    headers = s.request.headers;
+    queryParams = s.request.query_params;
   }
 
   function persistFormToRequest(s: Scoop) {
     s.request.method = method;
     s.request.url = url;
+    s.response = response;
+    s.request.headers = headers;
+    s.request.query_params = queryParams;
   }
 
   $effect(() => {
@@ -103,8 +101,6 @@
     currentScoop.response = new Response();
     loading = true;
 
-    rawToHeaders();
-    rawToQParams();
     persistFormToRequest(currentScoop);
 
     try {
@@ -119,47 +115,11 @@
   async function onSwitchRequest(): Promise<boolean> {
     try {
       persistFormToRequest(currentScoop);
-      const ok = await Backend.SaveRequest(currentScoop.request, currentCollection);
+      const ok = await Backend.SaveScoop(currentScoop, currentCollection);
       return ok;
     } catch (error) {
       console.log(error);
       return false;
-    }
-  }
-
-  function rawToHeaders() {
-    const r: string[] = headerRawContent.split("\n");
-    headers = [];
-
-    for (const row of r) {
-      if (row === "") return;
-
-      const idx: number = row.indexOf(":");
-
-      const key: string = (idx === -1 ? row : row.slice(0, idx)).trim();
-      const val: string = (idx === -1 ? "" : row.slice(idx + 1)).trim();
-
-      const newRow: KV = { key: key, value: val };
-      console.log(`Headers: ${newRow.key}:${newRow.value}`);
-      headers.push(newRow);
-    }
-  }
-
-  function rawToQParams() {
-    const r: string[] = qParamRawContent.split("\n");
-    queryParams = [];
-
-    for (const row of r) {
-      if (row === "") return;
-
-      const idx: number = row.indexOf("=");
-
-      const key: string = (idx === -1 ? row : row.slice(0, idx)).trim();
-      const val: string = (idx === -1 ? "" : row.slice(idx + 1)).trim();
-
-      const newRow: KV = { key: key, value: val };
-      console.log(`Query Param: ${newRow.key}=${newRow.value}`);
-      queryParams.push(newRow);
     }
   }
 
@@ -186,7 +146,11 @@
       console.log(`Switch Request Fired! Ctrl + ${n}`);
 
       const ok = await onSwitchRequest();
-      if (ok) currentScoop = allScoops[n - 1];
+      if (ok) {
+        currentScoop = allScoops[n - 1];
+        response = currentScoop.response ?? "";
+        queryParams = currentScoop.request.query_params;
+      }
     }
   };
 
@@ -196,7 +160,7 @@
 
       // want to use reactive plain objects in UI since Svelete reactivity doesnt like classes
       response = s.response;
-      // url = currentScoop.request.url;
+      url = s.request.url;
       persistFormToRequest(currentScoop);
 
       loading = false;
@@ -325,9 +289,9 @@
               </div>
             </div>
             {#if headerTType === "raw"}
-              <RawInput bind:content={headerRawContent} />
+              <RawInput bind:content={headers} inputMode={"isHeader"} />
             {:else}
-              <KvInput bind:rawContent={headerRawContent} inputMode={"isHeader"} />
+              <KvInput bind:content={headers} inputMode={"isHeader"} />
             {/if}
           </div>
 
@@ -361,9 +325,9 @@
               </div>
             </div>
             {#if qParamTType === "raw"}
-              <RawInput bind:content={qParamRawContent} />
+              <RawInput bind:content={queryParams} inputMode={"isQParam"} />
             {:else}
-              <KvInput bind:rawContent={qParamRawContent} inputMode={"isQParam"} />
+              <KvInput bind:content={queryParams} inputMode={"isQParam"} />
             {/if}
           </div>
 
@@ -386,7 +350,7 @@
                 </label>
               </div>
             </div>
-            <RawInput bind:content={bodyRawContent} />
+            <RawInput bind:content={body} inputMode={"isBody"} />
           </div>
         </div>
       </div>
@@ -397,10 +361,10 @@
       <!-->Response Title Section<-->
       <div class="mb-3 flex flex-row gap-2">
         <p class="px-3 text-sm underline underline-offset-3">Response</p>
-        {#if currentScoop.response.body !== ""}
-          <p class="border-border border px-2 text-sm">{currentScoop.response.status}</p>
-          <p class="border-border border px-2 text-sm">{currentScoop.response.content_type}</p>
-          <p class="border-border border px-2 text-sm">{currentScoop.response?.duration} ms</p>
+        {#if response.body !== ""}
+          <p class="border-border border px-2 text-sm">{response.status}</p>
+          <p class="border-border border px-2 text-sm">{response.content_type}</p>
+          <p class="border-border border px-2 text-sm">{response.duration} ms</p>
         {:else if loading}
           <DotSpinner />
         {/if}
@@ -413,10 +377,7 @@
           {reqParamsHidden === false ? "+" : "-"}
         </button>
       </div>
-      <ResponseViewer
-        value={currentScoop.response.body ?? ""}
-        contentType={currentScoop.response.content_type ?? ""}
-      />
+      <ResponseViewer value={response.body ?? ""} contentType={response.content_type ?? ""} />
     </div>
     <div class="-mx-10 h-8 items-center rounded-b-sm bg-green-950/30">
       <div class="flex h-full flex-row items-center gap-5 px-10 text-sm text-green-500/90">
@@ -427,14 +388,15 @@
           </p>
         </div>
 
-        {#if currentScoop.request.name !== "temp"}
+        {#if currentScoop.name !== "temp"}
+          <!-->TODO: add some logic to handle overflow<-->
           {#each allScoops as scoop, i}
             <div class="flex flex-row gap-1">
               <p class={currentScoop === scoop ? `text-blue-500` : `text-green-400`}>
                 [{i + 1}]
               </p>
               <p class={currentScoop === scoop ? `text-blue-500` : `text-green-400`}>
-                {scoop.request.name}
+                {scoop.name}
               </p>
             </div>
           {/each}

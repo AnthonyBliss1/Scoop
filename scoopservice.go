@@ -33,7 +33,6 @@ type KV struct {
 }
 
 type Request struct {
-	Name    string `json:"name"`
 	Method  Method `json:"method"`
 	URL     string `json:"url"`
 	Headers []KV   `json:"headers"`
@@ -50,6 +49,7 @@ type Response struct {
 }
 
 type Scoop struct {
+	Name     string   `json:"name"`
 	Request  Request  `json:"request"`
 	Response Response `json:"response"`
 }
@@ -65,10 +65,9 @@ type Backend struct {
 
 // Initializes the Scoop model by attaching method, url, headers, query params, and body (body soon)
 
-func (b *Backend) ModelIntializer(name string, method Method, reqURL string, headers []KV, qParams []KV) (Request, error) {
+func (b *Backend) ModelIntializer(method Method, reqURL string, headers []KV, qParams []KV) (Request, error) {
 	var r Request
 
-	r.Name = name
 	r.Method = method
 	r.URL = reqURL
 	r.Headers = headers
@@ -77,7 +76,7 @@ func (b *Backend) ModelIntializer(name string, method Method, reqURL string, hea
 	return r, nil
 }
 
-func (b *Backend) AddQueryParams(s Scoop) error {
+func (b *Backend) AddQueryParams(s *Scoop) error {
 	u, err := url.Parse(s.Request.URL)
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -103,7 +102,7 @@ func (b *Backend) SubmitRequest(s Scoop) {
 		client := http.Client{}
 
 		// add query params to url
-		b.AddQueryParams(s)
+		b.AddQueryParams(&s)
 
 		req, err := http.NewRequest(string(s.Request.Method), s.Request.URL, nil)
 		if err != nil {
@@ -144,7 +143,7 @@ func (b *Backend) SubmitRequest(s Scoop) {
 
 		sBody := string(bodyBytes)
 
-		// deterministic formatting
+		// deterministic formatting (json & html)
 		if strings.HasPrefix(r.ContentType, "application/json") {
 			var v any
 			if err := json.Unmarshal(bodyBytes, &v); err != nil {
@@ -172,6 +171,8 @@ func (b *Backend) SubmitRequest(s Scoop) {
 		App.Event.Emit("respMsg", s)
 	}()
 }
+
+// TODO: prevent duplicate Collection names
 
 func (b *Backend) CreateCollection(c Collection) (bool, error) {
 	if strings.ContainsAny(c.Name, `/\`) {
@@ -211,6 +212,8 @@ func (b *Backend) CreateCollection(c Collection) (bool, error) {
 	return true, nil
 }
 
+// TODO: prevent duplicate Scoop names
+
 func (b *Backend) CreateRequest(c Collection, r Request) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
@@ -229,7 +232,7 @@ func (b *Backend) CreateRequest(c Collection, r Request) (bool, error) {
 	// add request to current collection (no response)
 	c.Scoops = append(c.Scoops, Scoop{Request: r})
 
-	j, err := json.MarshalIndent(c.Scoops, "", "  ")
+	j, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
@@ -289,7 +292,7 @@ func (b *Backend) OpenCollections() ([]Collection, error) {
 	return availCollections, nil
 }
 
-// TODO
+// TODO:
 // nearly identical to the CreateCollection function
 // should make one function for create and save (WriteCollection)
 
@@ -325,7 +328,7 @@ func (b *Backend) SaveCollection(c Collection) (bool, error) {
 	return true, nil
 }
 
-func (b *Backend) SaveRequest(r Request, c Collection) (bool, error) {
+func (b *Backend) SaveScoop(s Scoop, c Collection) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -341,8 +344,8 @@ func (b *Backend) SaveRequest(r Request, c Collection) (bool, error) {
 	}
 
 	for _, scoop := range c.Scoops {
-		if scoop.Request.Name == r.Name {
-			scoop.Request = r
+		if scoop.Name == s.Name {
+			scoop = s
 		}
 	}
 

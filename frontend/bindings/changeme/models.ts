@@ -74,7 +74,6 @@ export enum Method {
 }
 
 export class Request {
-  "name": string;
   "method": Method;
   "url": string;
   "headers": KV[];
@@ -82,9 +81,6 @@ export class Request {
 
   /** Creates a new Request instance. */
   constructor($$source: Partial<Request> = {}) {
-    if (!("name" in $$source)) {
-      this["name"] = "";
-    }
     if (!("method" in $$source)) {
       this["method"] = Method.$zero;
     }
@@ -105,14 +101,14 @@ export class Request {
    * Creates a new Request instance from a string or object.
    */
   static createFrom($$source: any = {}): Request {
+    const $$createField2_0 = $$createType3;
     const $$createField3_0 = $$createType3;
-    const $$createField4_0 = $$createType3;
     let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
     if ("headers" in $$parsedSource) {
-      $$parsedSource["headers"] = $$createField3_0($$parsedSource["headers"]);
+      $$parsedSource["headers"] = $$createField2_0($$parsedSource["headers"]);
     }
     if ("query_params" in $$parsedSource) {
-      $$parsedSource["query_params"] = $$createField4_0($$parsedSource["query_params"]);
+      $$parsedSource["query_params"] = $$createField3_0($$parsedSource["query_params"]);
     }
     return new Request($$parsedSource as Partial<Request>);
   }
@@ -164,11 +160,15 @@ export class Response {
 }
 
 export class Scoop {
+  "name": string;
   "request": Request;
   "response": Response;
 
   /** Creates a new Scoop instance. */
   constructor($$source: Partial<Scoop> = {}) {
+    if (!("name" in $$source)) {
+      this["name"] = "";
+    }
     if (!("request" in $$source)) {
       this["request"] = new Request();
     }
@@ -183,14 +183,14 @@ export class Scoop {
    * Creates a new Scoop instance from a string or object.
    */
   static createFrom($$source: any = {}): Scoop {
-    const $$createField0_0 = $$createType4;
-    const $$createField1_0 = $$createType5;
+    const $$createField1_0 = $$createType4;
+    const $$createField2_0 = $$createType5;
     let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
     if ("request" in $$parsedSource) {
-      $$parsedSource["request"] = $$createField0_0($$parsedSource["request"]);
+      $$parsedSource["request"] = $$createField1_0($$parsedSource["request"]);
     }
     if ("response" in $$parsedSource) {
-      $$parsedSource["response"] = $$createField1_0($$parsedSource["response"]);
+      $$parsedSource["response"] = $$createField2_0($$parsedSource["response"]);
     }
     return new Scoop($$parsedSource as Partial<Scoop>);
   }

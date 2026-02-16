@@ -25,7 +25,7 @@
       return;
     }
 
-    tempScoop.request.name = newRequest;
+    tempScoop.name = newRequest;
 
     try {
       const ok = await Backend.CreateRequest(collection, tempScoop.request);
@@ -36,7 +36,7 @@
 
         // this seems to work here but not sure why, need to investigate
         collection.scoops.push(tempScoop);
-        console.log(`Created Request: ${tempScoop.request.name}`);
+        console.log(`Created Request: ${tempScoop.name}`);
       }
     } catch (error) {
       console.error(error);

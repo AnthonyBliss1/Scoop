@@ -13,7 +13,7 @@ import {
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
-export function AddQueryParams(s: $models.Scoop): $CancellablePromise<void> {
+export function AddQueryParams(s: $models.Scoop | null): $CancellablePromise<void> {
   return $Call.ByID(1676166479, s);
 }
 
@@ -29,13 +29,12 @@ export function CreateRequest(
 }
 
 export function ModelIntializer(
-  name: string,
   method: $models.Method,
   reqURL: string,
   headers: $models.KV[],
   qParams: $models.KV[],
 ): $CancellablePromise<$models.Request> {
-  return $Call.ByID(3595892640, name, method, reqURL, headers, qParams).then(($result: any) => {
+  return $Call.ByID(3595892640, method, reqURL, headers, qParams).then(($result: any) => {
     return $$createType0($result);
   });
 }
@@ -50,11 +49,8 @@ export function SaveCollection(c: $models.Collection): $CancellablePromise<boole
   return $Call.ByID(711771153, c);
 }
 
-export function SaveRequest(
-  r: $models.Request,
-  c: $models.Collection,
-): $CancellablePromise<boolean> {
-  return $Call.ByID(2504038450, r, c);
+export function SaveScoop(s: $models.Scoop, c: $models.Collection): $CancellablePromise<boolean> {
+  return $Call.ByID(1153602115, s, c);
 }
 
 export function SubmitRequest(s: $models.Scoop): $CancellablePromise<void> {
