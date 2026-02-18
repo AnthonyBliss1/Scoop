@@ -29,11 +29,8 @@ export function CreateDNSOverride(newOv: $models.DNSOverride): $CancellablePromi
   return $Call.ByID(3781920043, newOv);
 }
 
-export function CreateRequest(
-  c: $models.Collection,
-  r: $models.Request,
-): $CancellablePromise<boolean> {
-  return $Call.ByID(2259185493, c, r);
+export function CreateScoop(c: $models.Collection, s: $models.Scoop): $CancellablePromise<boolean> {
+  return $Call.ByID(3476665536, c, s);
 }
 
 export function ModelIntializer(

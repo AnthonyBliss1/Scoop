@@ -2,6 +2,10 @@
   import { toast } from "svelte-sonner";
   import { Backend, Collection, Request, Scoop } from "../../../bindings/changeme";
 
+  // TODO: Think about renaming this to create-scoop
+  // originally was request but recently created the scoop structure (consisting of Request + Response)
+  // not sure how committed i am to this
+
   let {
     cmd = $bindable("Create New Request"),
     allScoops = $bindable<Scoop[]>(),
@@ -17,18 +21,18 @@
   let inputEl: HTMLInputElement | null = $state(null);
 
   let tempScoop: Scoop = $state(new Scoop({ request: new Request() }));
-  let newRequest: string = $state("");
+  let newScoop: string = $state("");
 
-  async function createRequest() {
-    if (newRequest === "" || newRequest === "temp") {
+  async function createScoop() {
+    if (newScoop === "" || newScoop === "temp") {
       toast.error("Please enter a valid name");
       return;
     }
 
-    tempScoop.name = newRequest;
+    tempScoop.name = newScoop;
 
     try {
-      const ok = await Backend.CreateRequest(collection, tempScoop.request);
+      const ok = await Backend.CreateScoop(collection, tempScoop);
 
       if (ok) {
         allScoops.push(tempScoop);
@@ -58,7 +62,7 @@
     class="focus:ring-offset-background bg-background border-border h-8 w-full
     min-w-0 rounded-sm border px-2 text-green-300 shadow-md
     focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none md:min-w-[450px]"
-    bind:value={newRequest}
+    bind:value={newScoop}
     bind:this={inputEl}
     placeholder="Enter Request Name..."
   />
@@ -70,7 +74,7 @@
         text-sm hover:cursor-pointer hover:bg-green-400 hover:text-black focus:ring-2
         focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
-      onclick={createRequest}>Create</button
+      onclick={createScoop}>Create</button
     >
 
     <button

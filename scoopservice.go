@@ -232,7 +232,7 @@ func (b *Backend) CreateCollection(c Collection) (bool, error) {
 
 // TODO: prevent duplicate Scoop names
 
-func (b *Backend) CreateRequest(c Collection, r Request) (bool, error) {
+func (b *Backend) CreateScoop(c Collection, s Scoop) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -247,8 +247,8 @@ func (b *Backend) CreateRequest(c Collection, r Request) (bool, error) {
 		return false, err
 	}
 
-	// add request to current collection (no response)
-	c.Scoops = append(c.Scoops, Scoop{Request: r})
+	// add scoop to current collection (no response)
+	c.Scoops = append(c.Scoops, s)
 
 	j, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
