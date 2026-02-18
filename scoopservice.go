@@ -59,8 +59,14 @@ type Collection struct {
 	Scoops []Scoop `json:"scoops"`
 }
 
+type DNSOverride struct {
+	Variable string `json:"variable"`
+	IPV4     string `json:"ipv4"`
+}
+
 type Backend struct {
-	context context.Context
+	context   context.Context
+	Overrides []DNSOverride
 }
 
 // Initializes the Scoop model by attaching method, url, headers, query params, and body (body soon)
@@ -104,7 +110,19 @@ func (b *Backend) SubmitRequest(s Scoop) {
 		// add query params to url
 		b.AddQueryParams(&s)
 
-		req, err := http.NewRequest(string(s.Request.Method), s.Request.URL, nil)
+		// check for use of DNS Overrides
+		realURL, err := b.CheckDNSOverride(s)
+		if err != nil {
+			App.Event.Emit("errMsg", err)
+			return
+		}
+
+		// incase no matches
+		if realURL == "" {
+			realURL = s.Request.URL
+		}
+
+		req, err := http.NewRequest(string(s.Request.Method), realURL, nil)
 		if err != nil {
 			App.Event.Emit("errMsg", fmt.Sprint(err))
 			return
@@ -151,13 +169,13 @@ func (b *Backend) SubmitRequest(s Scoop) {
 				return
 			}
 
-			b, err := json.MarshalIndent(v, "", "  ")
+			j, err := json.MarshalIndent(v, "", "  ")
 			if err != nil {
 				App.Event.Emit("errMsg", fmt.Sprint(err))
 				return
 			}
 
-			sBody = string(b)
+			sBody = string(j)
 
 		} else if strings.HasPrefix(r.ContentType, "text/html") {
 			sBody = gohtml.Format(sBody)
@@ -359,6 +377,69 @@ func (b *Backend) SaveScoop(s Scoop, c Collection) (bool, error) {
 	path := filepath.Join(scoopDir, colFile)
 
 	if err := os.WriteFile(path, j, 0o644); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (b *Backend) OpenDNSOverrides() (allOv []DNSOverride, ovDir string, err error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		return []DNSOverride{}, "", err
+	}
+
+	dnsDir := filepath.Join(base, "Scoop", "DNS")
+
+	// ensure /Scoop/DNS is created in UserConfigDir
+	if err := os.MkdirAll(dnsDir, 0o755); err != nil {
+		return []DNSOverride{}, "", err
+	}
+
+	overrides := filepath.Join(dnsDir, "overrides.json")
+
+	o, err := os.ReadFile(overrides)
+	if err == nil {
+		if err := json.Unmarshal(o, &allOv); err != nil {
+			return []DNSOverride{}, "", err
+		}
+	}
+	return allOv, "", nil
+}
+
+func (b *Backend) CheckDNSOverride(s Scoop) (realURL string, err error) {
+	allOV, _, err := b.OpenDNSOverrides()
+	if err != nil {
+		return "", err
+	}
+
+	for _, ov := range allOV {
+		if strings.Contains(s.Request.URL, fmt.Sprintf("//%s", ov.Variable)) {
+			realURL = strings.Replace(s.Request.URL, ov.Variable, ov.IPV4, 1)
+			return
+		}
+	}
+
+	return realURL, nil
+}
+
+func (b *Backend) CreateDNSOverride(newOv DNSOverride) (bool, error) {
+	allOv, ovDir, err := b.OpenDNSOverrides()
+	if err != nil {
+		App.Event.Emit("errMsg", err)
+		return false, err
+	}
+
+	allOv = append(allOv, newOv)
+
+	j, err := json.MarshalIndent(allOv, "", "  ")
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	if err := os.WriteFile(ovDir, j, 0o644); err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
 	}

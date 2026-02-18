@@ -17,8 +17,16 @@ export function AddQueryParams(s: $models.Scoop | null): $CancellablePromise<voi
   return $Call.ByID(1676166479, s);
 }
 
+export function CheckDNSOverride(s: $models.Scoop): $CancellablePromise<string> {
+  return $Call.ByID(145133263, s);
+}
+
 export function CreateCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(918511024, c);
+}
+
+export function CreateDNSOverride(newOv: $models.DNSOverride): $CancellablePromise<boolean> {
+  return $Call.ByID(3781920043, newOv);
 }
 
 export function CreateRequest(
@@ -45,6 +53,13 @@ export function OpenCollections(): $CancellablePromise<$models.Collection[]> {
   });
 }
 
+export function OpenDNSOverrides(): $CancellablePromise<[$models.DNSOverride[], string]> {
+  return $Call.ByID(2754441876).then(($result: any) => {
+    $result[0] = $$createType4($result[0]);
+    return $result;
+  });
+}
+
 export function SaveCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(711771153, c);
 }
@@ -61,3 +76,5 @@ export function SubmitRequest(s: $models.Scoop): $CancellablePromise<void> {
 const $$createType0 = $models.Request.createFrom;
 const $$createType1 = $models.Collection.createFrom;
 const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = $models.DNSOverride.createFrom;
+const $$createType4 = $Create.Array($$createType3);

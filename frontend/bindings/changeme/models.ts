@@ -34,6 +34,31 @@ export class Collection {
   }
 }
 
+export class DNSOverride {
+  "variable": string;
+  "ipv4": string;
+
+  /** Creates a new DNSOverride instance. */
+  constructor($$source: Partial<DNSOverride> = {}) {
+    if (!("variable" in $$source)) {
+      this["variable"] = "";
+    }
+    if (!("ipv4" in $$source)) {
+      this["ipv4"] = "";
+    }
+
+    Object.assign(this, $$source);
+  }
+
+  /**
+   * Creates a new DNSOverride instance from a string or object.
+   */
+  static createFrom($$source: any = {}): DNSOverride {
+    let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
+    return new DNSOverride($$parsedSource as Partial<DNSOverride>);
+  }
+}
+
 export class KV {
   "key": string;
   "value": string;

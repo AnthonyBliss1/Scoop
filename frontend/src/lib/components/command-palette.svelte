@@ -12,12 +12,13 @@
   import CreateRequest from "./create-request.svelte";
   import type { Collection, Scoop } from "bindings/changeme";
   import OpenCollection from "./open-collection.svelte";
+  import DnsOverride from "./dns-override.svelte";
 
   type Command =
     | "Create New Request"
     | "Create Collection"
     | "Open Collection"
-    | "Create DNS Alias"
+    | "Configure DNS Override"
     | "Configure Sync"
     | "Run Sync";
 
@@ -108,9 +109,15 @@
       </Command.Group>
 
       <Command.Group heading="Cloud">
-        <Command.Item disabled={true} value="Create DNS Alias">
+        <Command.Item
+          class="hover:cursor-pointer"
+          value="Create DNS Alias"
+          onclick={() => {
+            executeCmd = "Configure DNS Override";
+          }}
+        >
           <Server class="text-green-500" />
-          <span class="text-green-300">Create DNS Alias</span>
+          <span class="text-green-300">Configure DNS Override</span>
           <Command.Shortcut class="text-green-500">⌘D</Command.Shortcut>
         </Command.Item>
         <Command.Item disabled={true} value="Configure Sync">
@@ -132,4 +139,6 @@
   <CreateCollection bind:cmd={executeCmd} bind:collection />
 {:else if executeCmd === "Open Collection"}
   <OpenCollection bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
+{:else if executeCmd === "Configure DNS Override"}
+  <DnsOverride bind:cmd={executeCmd} />
 {/if}

@@ -4,4 +4,4 @@
 import * as Backend from "./backend.js";
 export { Backend };
 
-export { Collection, KV, Method, Request, Response, Scoop } from "./models.js";
+export { Collection, DNSOverride, KV, Method, Request, Response, Scoop } from "./models.js";
