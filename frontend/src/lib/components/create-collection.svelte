@@ -1,10 +1,17 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { Backend, Collection } from "../../../bindings/changeme";
+  import { Backend, Collection, Scoop } from "../../../bindings/changeme";
 
-  let { cmd = $bindable("Create Collection"), collection = $bindable<Collection>() } = $props<{
+  let {
+    cmd = $bindable("Create Collection"),
+    allScoops = $bindable<Scoop[]>(),
+    collection = $bindable<Collection>(),
+    currentScoop = $bindable<Scoop>(),
+  } = $props<{
     cmd: any;
+    allScoops: Scoop[];
     collection: Collection;
+    currentScoop: Scoop;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
@@ -25,6 +32,8 @@
 
       if (ok) {
         collection = tempCollection;
+        currentScoop = new Scoop({ name: "temp" });
+        allScoops = [];
         console.log(`Created Collection: ${collection.name}`);
       }
     } catch (error) {

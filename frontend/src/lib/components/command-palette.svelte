@@ -136,7 +136,7 @@
 {:else if executeCmd === "Create New Request"}
   <CreateRequest bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
 {:else if executeCmd === "Create Collection"}
-  <CreateCollection bind:cmd={executeCmd} bind:collection />
+  <CreateCollection bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
 {:else if executeCmd === "Open Collection"}
   <OpenCollection bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
 {:else if executeCmd === "Configure DNS Override"}
