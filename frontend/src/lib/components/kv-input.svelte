@@ -18,6 +18,10 @@
     if (content.length === 1) return;
     content = content.slice(0, -1);
   }
+
+  $effect(() => {
+    if (content.length === 0) content.push({ key: "", value: "" });
+  });
 </script>
 
 <div class="bg-accent m-3 flex h-64 flex-col overflow-hidden rounded-md border text-sm">

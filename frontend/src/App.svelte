@@ -234,7 +234,7 @@
         <p>URL:</p>
         <input
           class="focus:ring-offset-background w-full min-w-0 text-green-300 focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
-          placeholder="https://google.com"
+          placeholder="https:// ..."
           bind:value={url}
         />
       </div>
