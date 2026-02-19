@@ -98,5 +98,6 @@
     rows={10}
     onscroll={syncScroll}
     oninput={syncScroll}
+    maxlength={5000}
   ></textarea>
 </div>

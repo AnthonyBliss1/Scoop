@@ -11,6 +11,9 @@
   let scroller: HTMLDivElement;
 
   function addRow() {
+    // max 100 rows
+    if (content.length > 100) return;
+
     content = [...content, { key: "", value: "" }];
   }
 

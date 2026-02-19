@@ -36,7 +36,9 @@
 
       if (ok) {
         allScoops.push(tempScoop);
-        currentScoop = allScoops[0];
+
+        // only override currentScoop if created scoop is the first in the collection
+        if (currentScoop.name === "temp") currentScoop = allScoops[0];
 
         // this seems to work here but not sure why, need to investigate
         collection.scoops.push(tempScoop);
