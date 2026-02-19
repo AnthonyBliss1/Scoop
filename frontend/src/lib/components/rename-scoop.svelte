@@ -1,0 +1,101 @@
+<script lang="ts">
+  import { toast } from "svelte-sonner";
+  import { Backend, Collection, Request, Scoop } from "../../../bindings/changeme";
+
+  let {
+    showRenameScoop = $bindable<boolean>(),
+    allScoops = $bindable<Scoop[]>(),
+    collection = $bindable<Collection>(),
+    currentScoop = $bindable<Scoop>(),
+  } = $props<{
+    showRenameScoop: boolean;
+    allScoops: Scoop[];
+    collection: Collection;
+    currentScoop: Scoop;
+  }>();
+
+  let inputEl: HTMLInputElement | null = $state(null);
+
+  let newScoopName: string = $state(currentScoop.name);
+
+  // TODO: add check to avoid duplicate scoop names
+
+  async function renameScoop() {
+    if (newScoopName === "" || newScoopName === "temp") {
+      toast.error("Please enter a valid name");
+      return;
+    }
+
+    try {
+      replaceScoop();
+      const ok = await Backend.SaveScoop(currentScoop, collection);
+
+      if (ok) {
+        console.log(`Renamed Request: ${currentScoop.name}`);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      showRenameScoop = false;
+    }
+  }
+
+  function replaceScoop() {
+    // find the index of the scoop to modify (currentScoop)
+    const idx = allScoops.findIndex((s: Scoop) => s.name === currentScoop.name);
+    if (idx === -1) return;
+
+    // need to create temp array
+    // (crete new references for reactivity)
+    let tempAllScoop = [...allScoops];
+    tempAllScoop[idx] = { ...tempAllScoop[idx], name: newScoopName };
+
+    // overwrite the main arrays
+    // (making sure to create new references)
+    allScoops = tempAllScoop;
+    collection = { ...collection, scoops: tempAllScoop };
+
+    // overwrite name of the currentScoop
+    currentScoop.name = newScoopName;
+  }
+
+  $effect(() => {
+    if (showRenameScoop === true) {
+      inputEl?.focus();
+    }
+  });
+</script>
+
+<div class="border-border bg-background flex flex-col gap-5 rounded-sm border p-5">
+  <p class="flex items-center justify-center">Rename Scoop</p>
+  <input
+    class="focus:ring-offset-background bg-background border-border h-8 w-full
+    min-w-0 rounded-sm border px-2 text-green-300 shadow-md
+    focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none md:min-w-[450px]"
+    bind:value={newScoopName}
+    bind:this={inputEl}
+    placeholder="Enter New Scoop Name..."
+  />
+
+  <div class="flex w-full flex-row items-center justify-center gap-10">
+    <button
+      class="border-border bg-accent text-foreground focus:ring-offset-background inline-flex h-9 items-center
+        justify-center rounded-sm border px-3
+        text-sm hover:cursor-pointer hover:bg-green-400 hover:text-black focus:ring-2
+        focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
+        disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
+      onclick={renameScoop}>Rename</button
+    >
+
+    <button
+      class="border-border bg-accent text-foreground focus:ring-offset-background inline-flex h-9 items-center
+        justify-center rounded-sm border px-3
+        text-sm hover:cursor-pointer hover:bg-green-400 hover:text-black focus:ring-2
+        focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
+        disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
+      onclick={() => {
+        showRenameScoop = false;
+      }}>Cancel</button
+    >
+  </div>
+</div>

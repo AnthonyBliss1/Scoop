@@ -10,12 +10,14 @@
   import { Toaster } from "$lib/components/ui/sonner/index.js";
   import { toast } from "svelte-sonner";
   import Package from "@lucide/svelte/icons/package";
+  import RenameScoop from "$lib/components/rename-scoop.svelte";
 
   // events emitted from backend
   let onRspMsg: undefined | (() => void);
   let onErrMsg: undefined | (() => void);
 
   let showCmdPalette: boolean = $state(false);
+  let showRenameScoop: boolean = $state(false);
   let reqParamsHidden: boolean = $state(false);
 
   // set default to temp
@@ -137,6 +139,12 @@
     }
   };
 
+  const renameScoop = (event: KeyboardEvent) => {
+    if (event.ctrlKey && (event.key === "R" || event.code === "KeyR")) {
+      showRenameScoop = !showRenameScoop;
+    }
+  };
+
   const switchRequest = async (event: KeyboardEvent) => {
     if (event.ctrlKey && event.key > "0" && event.key <= "9") {
       const n: number = Number(event.key);
@@ -174,6 +182,7 @@
 
     document.addEventListener("keydown", openCmdPalette);
     document.addEventListener("keydown", hideReqParams);
+    document.addEventListener("keydown", renameScoop);
     document.addEventListener("keydown", switchRequest);
   });
 
@@ -184,6 +193,7 @@
 
     document.removeEventListener("keydown", openCmdPalette);
     document.removeEventListener("keydown", hideReqParams);
+    document.removeEventListener("keydown", renameScoop);
     document.removeEventListener("keydown", switchRequest);
   });
 </script>
@@ -392,10 +402,10 @@
           <!-->TODO: add some logic to handle overflow<-->
           {#each allScoops as scoop, i}
             <div class="flex flex-row gap-1">
-              <p class={currentScoop === scoop ? `text-blue-500` : `text-green-400`}>
+              <p class={currentScoop.name === scoop.name ? `text-blue-500` : `text-green-400`}>
                 [{i + 1}]
               </p>
-              <p class={currentScoop === scoop ? `text-blue-500` : `text-green-400`}>
+              <p class={currentScoop.name === scoop.name ? `text-blue-500` : `text-green-400`}>
                 {scoop.name}
               </p>
             </div>
@@ -424,6 +434,33 @@
       <!--CmdPalette-->
       <div class=" relative z-101 w-full max-w-xl shadow-lg">
         <CmdPalette bind:collection={currentCollection} bind:allScoops bind:currentScoop />
+      </div>
+    </div>
+  {/if}
+
+  {#if showRenameScoop}
+    <div
+      class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
+      aria-modal="true"
+      role="dialog"
+    >
+      <!--Backdrop as button for click away-->
+      <button
+        class="absolute inset-0 bg-black/60"
+        aria-hidden="true"
+        onclick={() => {
+          showRenameScoop = false;
+        }}
+      ></button>
+
+      <!--Rename Scoop-->
+      <div class=" relative z-101 w-full max-w-xl shadow-lg">
+        <RenameScoop
+          bind:collection={currentCollection}
+          bind:allScoops
+          bind:currentScoop
+          bind:showRenameScoop
+        />
       </div>
     </div>
   {/if}
