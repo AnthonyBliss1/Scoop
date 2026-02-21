@@ -26,7 +26,7 @@
     <OctagonXIcon class="size-4 text-red-500" />
   {/snippet}
   {#snippet infoIcon()}
-    <InfoIcon class="size-4" />
+    <InfoIcon class="size-4 text-blue-500" />
   {/snippet}
   {#snippet warningIcon()}
     <TriangleAlertIcon class="size-4 text-yellow-500" />

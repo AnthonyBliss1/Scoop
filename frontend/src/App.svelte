@@ -11,6 +11,8 @@
   import { toast } from "svelte-sonner";
   import Package from "@lucide/svelte/icons/package";
   import RenameScoop from "$lib/components/rename-scoop.svelte";
+  import HelpKeybindings from "$lib/components/help-keybindings.svelte";
+  import Info from "@lucide/svelte/icons/info";
 
   // events emitted from backend
   let onRspMsg: undefined | (() => void);
@@ -18,6 +20,7 @@
 
   let showCmdPalette: boolean = $state(false);
   let showRenameScoop: boolean = $state(false);
+  let showHelp: boolean = $state(false);
   let reqParamsHidden: boolean = $state(false);
 
   // set default to temp
@@ -128,8 +131,6 @@
   const openCmdPalette = (event: KeyboardEvent) => {
     if (event.ctrlKey && event.shiftKey && (event.key === "P" || event.code === "KeyP")) {
       showCmdPalette = true;
-    } else if (event.key === "Escape" && showCmdPalette) {
-      showCmdPalette = false;
     }
   };
 
@@ -141,7 +142,27 @@
 
   const renameScoop = (event: KeyboardEvent) => {
     if (event.ctrlKey && (event.key === "R" || event.code === "KeyR")) {
-      showRenameScoop = !showRenameScoop;
+      if (currentScoop.name === "temp") {
+        toast.warning("Cannot rename a temporary Scoop");
+      } else {
+        showRenameScoop = !showRenameScoop;
+      }
+    }
+  };
+
+  const onEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape" && (showCmdPalette || showRenameScoop || showHelp)) {
+      switch (true) {
+        case showCmdPalette:
+          showCmdPalette = false;
+          break;
+        case showRenameScoop:
+          showRenameScoop = false;
+          break;
+        case showHelp:
+          showHelp = false;
+          break;
+      }
     }
   };
 
@@ -181,8 +202,9 @@
     });
 
     document.addEventListener("keydown", openCmdPalette);
-    document.addEventListener("keydown", hideReqParams);
     document.addEventListener("keydown", renameScoop);
+    document.addEventListener("keydown", onEscape);
+    document.addEventListener("keydown", hideReqParams);
     document.addEventListener("keydown", switchRequest);
   });
 
@@ -192,8 +214,9 @@
     onErrMsg?.();
 
     document.removeEventListener("keydown", openCmdPalette);
-    document.removeEventListener("keydown", hideReqParams);
     document.removeEventListener("keydown", renameScoop);
+    document.removeEventListener("keydown", onEscape);
+    document.removeEventListener("keydown", hideReqParams);
     document.removeEventListener("keydown", switchRequest);
   });
 </script>
@@ -411,12 +434,21 @@
             </div>
           {/each}
         {/if}
+        <div class="ml-auto flex h-8 items-center justify-center">
+          <button
+            class="hover:cursor-pointer focus:outline-none"
+            onclick={() => {
+              showHelp = true;
+            }}
+          >
+            <Info class="text-blue-500/90" size={20} />
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-->CmdPalette Overlay<-->
-  {#if showCmdPalette}
+  {#if showCmdPalette || showRenameScoop || showHelp}
     <div
       class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
       aria-modal="true"
@@ -427,41 +459,40 @@
         class="absolute inset-0 bg-black/60"
         aria-hidden="true"
         onclick={() => {
-          showCmdPalette = false;
+          switch (true) {
+            case showCmdPalette:
+              showCmdPalette = false;
+              break;
+            case showRenameScoop:
+              showRenameScoop = false;
+              break;
+            case showHelp:
+              showHelp = false;
+              break;
+          }
         }}
       ></button>
-
-      <!--CmdPalette-->
-      <div class=" relative z-101 w-full max-w-xl shadow-lg">
-        <CmdPalette bind:collection={currentCollection} bind:allScoops bind:currentScoop />
-      </div>
-    </div>
-  {/if}
-
-  {#if showRenameScoop}
-    <div
-      class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
-      aria-modal="true"
-      role="dialog"
-    >
-      <!--Backdrop as button for click away-->
-      <button
-        class="absolute inset-0 bg-black/60"
-        aria-hidden="true"
-        onclick={() => {
-          showRenameScoop = false;
-        }}
-      ></button>
-
-      <!--Rename Scoop-->
-      <div class=" relative z-101 w-full max-w-xl shadow-lg">
-        <RenameScoop
-          bind:collection={currentCollection}
-          bind:allScoops
-          bind:currentScoop
-          bind:showRenameScoop
-        />
-      </div>
+      {#if showCmdPalette}
+        <!--CmdPalette-->
+        <div class=" relative z-101 w-full max-w-xl shadow-lg">
+          <CmdPalette bind:collection={currentCollection} bind:allScoops bind:currentScoop />
+        </div>
+      {:else if showRenameScoop}
+        <!--Rename Scoop-->
+        <div class=" relative z-101 w-full max-w-xl shadow-lg">
+          <RenameScoop
+            bind:collection={currentCollection}
+            bind:allScoops
+            bind:currentScoop
+            bind:showRenameScoop
+          />
+        </div>
+      {:else if showHelp}
+        <!--Keybindings Help Component-->
+        <div class=" relative z-101 w-full max-w-xl shadow-lg">
+          <HelpKeybindings />
+        </div>
+      {/if}
     </div>
   {/if}
 </div>
