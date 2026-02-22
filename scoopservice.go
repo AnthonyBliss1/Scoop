@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/yosssi/gohtml"
+	"moul.io/http2curl"
 )
 
 type Method string
@@ -113,7 +114,7 @@ func (b *Backend) SubmitRequest(s Scoop) {
 		// check for use of DNS Overrides
 		realURL, err := b.CheckDNSOverride(s)
 		if err != nil {
-			App.Event.Emit("errMsg", err)
+			App.Event.Emit("errMsg", fmt.Sprint(err))
 			return
 		}
 
@@ -427,7 +428,7 @@ func (b *Backend) CheckDNSOverride(s Scoop) (realURL string, err error) {
 func (b *Backend) CreateDNSOverride(newOv DNSOverride) (bool, error) {
 	allOv, ovDir, err := b.OpenDNSOverrides()
 	if err != nil {
-		App.Event.Emit("errMsg", err)
+		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
 	}
 
@@ -445,4 +446,44 @@ func (b *Backend) CreateDNSOverride(newOv DNSOverride) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (b *Backend) GenerateCurlCommand(s Scoop) (string, error) {
+	// add query params to url
+	b.AddQueryParams(&s)
+
+	// check for use of DNS Overrides
+	realURL, err := b.CheckDNSOverride(s)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return "", err
+	}
+
+	// incase no matches
+	if realURL == "" {
+		realURL = s.Request.URL
+	}
+
+	req, err := http.NewRequest(string(s.Request.Method), realURL, nil)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return "", err
+	}
+
+	// add headers to request
+	for _, h := range s.Request.Headers {
+		if h.Key == "" || h.Value == "" {
+			continue
+		}
+
+		req.Header.Add(h.Key, h.Value)
+	}
+
+	command, err := http2curl.GetCurlCommand(req)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return "", err
+	}
+
+	return command.String(), nil
 }

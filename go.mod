@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.44
 	github.com/yosssi/gohtml v0.0.0-20201013000340-ee4748c638f4
+	moul.io/http2curl v1.0.0
 )
 
 require (
@@ -38,6 +39,7 @@ require (
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
+	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/wailsapp/go-webview2 v1.0.22 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect

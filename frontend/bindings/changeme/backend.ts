@@ -33,6 +33,10 @@ export function CreateScoop(c: $models.Collection, s: $models.Scoop): $Cancellab
   return $Call.ByID(3476665536, c, s);
 }
 
+export function GenerateCurlCommand(s: $models.Scoop): $CancellablePromise<string> {
+  return $Call.ByID(3798398626, s);
+}
+
 export function ModelIntializer(
   method: $models.Method,
   reqURL: string,

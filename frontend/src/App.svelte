@@ -13,6 +13,8 @@
   import RenameScoop from "$lib/components/rename-scoop.svelte";
   import HelpKeybindings from "$lib/components/help-keybindings.svelte";
   import Info from "@lucide/svelte/icons/info";
+  import File from "@lucide/svelte/icons/file-braces";
+  import GeneratedCurl from "$lib/components/generated-curl.svelte";
 
   // events emitted from backend
   let onRspMsg: undefined | (() => void);
@@ -21,6 +23,7 @@
   let showCmdPalette: boolean = $state(false);
   let showRenameScoop: boolean = $state(false);
   let showHelp: boolean = $state(false);
+  let showCurl: boolean = $state(false);
   let reqParamsHidden: boolean = $state(false);
 
   // set default to temp
@@ -31,6 +34,7 @@
   let method: Method = $state(Method.Empty);
   let url: string = $state("");
   let response: Response = $state(new Response());
+  let curlCommand: string = $state("");
 
   let headers: KV[] = $state([]);
   let queryParams: KV[] = $state([]);
@@ -125,6 +129,21 @@
     } catch (error) {
       console.log(error);
       return false;
+    }
+  }
+
+  async function generateCurl() {
+    if (currentScoop.name === "temp") {
+      toast.warning("Please create a valid request first");
+      return;
+    }
+
+    try {
+      curlCommand = await Backend.GenerateCurlCommand(currentScoop);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      showCurl = true;
     }
   }
 
@@ -434,7 +453,15 @@
             </div>
           {/each}
         {/if}
-        <div class="ml-auto flex h-8 items-center justify-center">
+        <div class="ml-auto flex h-8 items-center justify-center gap-5">
+          <button
+            class="hover:cursor-pointer focus:outline-none"
+            onclick={() => {
+              generateCurl();
+            }}
+          >
+            <File class="text-blue-400/90" size={20} />
+          </button>
           <button
             class="hover:cursor-pointer focus:outline-none"
             onclick={() => {
@@ -448,7 +475,8 @@
     </div>
   </div>
 
-  {#if showCmdPalette || showRenameScoop || showHelp}
+  <!-->Handful of Different Overlays<-->
+  {#if showCmdPalette || showRenameScoop || showHelp || showCurl}
     <div
       class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
       aria-modal="true"
@@ -468,6 +496,9 @@
               break;
             case showHelp:
               showHelp = false;
+              break;
+            case showCurl:
+              showCurl = false;
               break;
           }
         }}
@@ -491,6 +522,11 @@
         <!--Keybindings Help Component-->
         <div class=" relative z-101 w-full max-w-xl shadow-lg">
           <HelpKeybindings />
+        </div>
+      {:else if showCurl}
+        <!--Generated CURL Command-->
+        <div class=" relative z-101 w-full max-w-xl shadow-lg">
+          <GeneratedCurl bind:curlCommand />
         </div>
       {/if}
     </div>
