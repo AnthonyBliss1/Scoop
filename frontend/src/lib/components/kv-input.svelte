@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { KV } from "bindings/changeme";
+  import Plus from "@lucide/svelte/icons/plus";
+  import Minus from "@lucide/svelte/icons/minus";
 
   type Mode = "isHeader" | "isQParam" | undefined;
 
@@ -48,12 +50,22 @@
       </div>
     {/each}
   </div>
-  <footer class="flex flex-row items-center justify-end gap-5 px-3 text-2xl">
+  <footer class="flex flex-row items-center justify-end gap-1 px-3 text-2xl">
     <div>
-      <button class="hover:cursor-pointer" onclick={addRow}>+</button>
+      <button
+        class="flex h-7 w-7 items-center justify-center p-1 focus:outline-none"
+        onclick={addRow}
+      >
+        <Plus size={18} strokeWidth={3} />
+      </button>
     </div>
     <div>
-      <button class="hover:cursor-pointer" onclick={removeRow}>-</button>
+      <button
+        class="flex h-7 w-7 items-center justify-center p-1 focus:outline-none"
+        onclick={removeRow}
+      >
+        <Minus size={18} strokeWidth={3} />
+      </button>
     </div>
   </footer>
 </div>

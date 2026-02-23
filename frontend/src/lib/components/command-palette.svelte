@@ -71,7 +71,6 @@
       <Command.Group heading="Suggested">
         <Command.Item
           value="Create New Request"
-          class="hover:cursor-pointer"
           disabled={collection.name === "temp" ? true : false}
           onclick={() => {
             executeCmd = "Create New Request";
@@ -85,7 +84,6 @@
 
       <Command.Group heading="Collections">
         <Command.Item
-          class="hover:cursor-pointer"
           value="Create Collection"
           onclick={() => {
             executeCmd = "Create Collection";
@@ -96,7 +94,6 @@
           <Command.Shortcut class="text-green-500">⌘N</Command.Shortcut>
         </Command.Item>
         <Command.Item
-          class="hover:cursor-pointer"
           value="Open Collection"
           onclick={() => {
             executeCmd = "Open Collection";
@@ -110,7 +107,6 @@
 
       <Command.Group heading="Cloud">
         <Command.Item
-          class="hover:cursor-pointer"
           value="Create DNS Alias"
           onclick={() => {
             executeCmd = "Configure DNS Override";

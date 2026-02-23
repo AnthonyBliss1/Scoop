@@ -50,7 +50,6 @@
       <Command.Group heading="Collections">
         {#each availCollections as c}
           <Command.Item
-            class="hover:cursor-pointer"
             value={c.name}
             onclick={() => {
               collection = c;
