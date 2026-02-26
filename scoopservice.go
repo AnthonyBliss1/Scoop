@@ -92,6 +92,10 @@ func (b *Backend) AddQueryParams(s *Scoop) error {
 	query := url.Values{}
 
 	for _, param := range s.Request.QParams {
+		if param.Key == "" || param.Value == "" {
+			continue
+		}
+
 		query.Add(param.Key, param.Value)
 	}
 
