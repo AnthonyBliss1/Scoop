@@ -46,6 +46,7 @@ type Response struct {
 	Headers     []KV   `json:"headers"`
 	Body        string `json:"body"`
 	Duration    int64  `json:"duration"`
+	Size        int64  `json:"size"`
 	ContentType string `json:"content_type"`
 }
 
@@ -163,6 +164,8 @@ func (b *Backend) SubmitRequest(s Scoop) {
 			App.Event.Emit("errMsg", fmt.Sprint(err))
 			return
 		}
+
+		r.Size = int64(len(bodyBytes))
 
 		sBody := string(bodyBytes)
 

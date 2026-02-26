@@ -145,6 +145,7 @@ export class Response {
   "headers": KV[];
   "body": string;
   "duration": number;
+  "size": number;
   "content_type": string;
 
   /** Creates a new Response instance. */
@@ -163,6 +164,9 @@ export class Response {
     }
     if (!("duration" in $$source)) {
       this["duration"] = 0;
+    }
+    if (!("size" in $$source)) {
+      this["size"] = 0;
     }
     if (!("content_type" in $$source)) {
       this["content_type"] = "";

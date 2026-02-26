@@ -415,7 +415,7 @@
         <p class="px-3 text-sm underline underline-offset-3">Response</p>
         {#if response.body !== ""}
           <p class="border-border border px-2 text-sm">{response.status}</p>
-          <p class="border-border border px-2 text-sm">{response.content_type}</p>
+          <p class="border-border border px-2 text-sm">{`${response.size}B`}</p>
           <p class="border-border border px-2 text-sm">{response.duration} ms</p>
         {:else if loading}
           <DotSpinner />
