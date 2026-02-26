@@ -388,25 +388,45 @@ func (b *Backend) SaveScoop(s Scoop, c Collection) (bool, error) {
 func (b *Backend) OpenDNSOverrides() (allOv []DNSOverride, ovDir string, err error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
-		return []DNSOverride{}, "", err
+		return nil, "", err
 	}
 
 	dnsDir := filepath.Join(base, "Scoop", "DNS")
 
 	// ensure /Scoop/DNS is created in UserConfigDir
 	if err := os.MkdirAll(dnsDir, 0o755); err != nil {
-		return []DNSOverride{}, "", err
+		return nil, "", err
 	}
 
 	overrides := filepath.Join(dnsDir, "overrides.json")
 
 	o, err := os.ReadFile(overrides)
-	if err == nil {
-		if err := json.Unmarshal(o, &allOv); err != nil {
-			return []DNSOverride{}, "", err
+	if err != nil {
+		// on error first check the file exists
+		if os.IsNotExist(err) {
+
+			// if the file doesnt exist, create it
+			if err := os.WriteFile(overrides, nil, 0o644); err != nil {
+				return nil, "", err
+			}
+
+			// at this point file is empty so set 'o' to empty slice of bytes
+			o = []byte{}
+
+		} else {
+			return nil, "", err
 		}
 	}
-	return allOv, "", nil
+
+	if len(o) == 0 {
+		return []DNSOverride{}, overrides, nil
+	}
+
+	if err := json.Unmarshal(o, &allOv); err != nil {
+		return nil, "", err
+	}
+
+	return allOv, overrides, nil
 }
 
 func (b *Backend) CheckDNSOverride(s Scoop) (realURL string, err error) {

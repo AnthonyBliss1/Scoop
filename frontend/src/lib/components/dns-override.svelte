@@ -28,6 +28,7 @@
       );
 
       if (ok) {
+        toast.success(`Created DNS Override "${newVariable}"`);
         console.log(`Created DNS Override: ${newVariable}`);
       }
     } catch (error) {
