@@ -61,12 +61,26 @@ export function OpenDNSOverrides(): $CancellablePromise<[$models.DNSOverride[], 
   });
 }
 
+export function OpenSyncServer(): $CancellablePromise<$models.Server> {
+  return $Call.ByID(2350959304).then(($result: any) => {
+    return $$createType5($result);
+  });
+}
+
 export function SaveCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(711771153, c);
 }
 
 export function SaveScoop(s: $models.Scoop, c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(1153602115, s, c);
+}
+
+export function SendToServer(s: $models.Server): $CancellablePromise<boolean> {
+  return $Call.ByID(504941912, s);
+}
+
+export function SetSyncServer(s: $models.Server): $CancellablePromise<boolean> {
+  return $Call.ByID(2363762272, s);
 }
 
 export function SubmitRequest(s: $models.Scoop): $CancellablePromise<void> {
@@ -79,3 +93,4 @@ const $$createType1 = $models.Collection.createFrom;
 const $$createType2 = $Create.Array($$createType1);
 const $$createType3 = $models.DNSOverride.createFrom;
 const $$createType4 = $Create.Array($$createType3);
+const $$createType5 = $models.Server.createFrom;

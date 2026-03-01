@@ -225,6 +225,31 @@ export class Scoop {
   }
 }
 
+export class Server {
+  "name": string;
+  "url": string;
+
+  /** Creates a new Server instance. */
+  constructor($$source: Partial<Server> = {}) {
+    if (!("name" in $$source)) {
+      this["name"] = "";
+    }
+    if (!("url" in $$source)) {
+      this["url"] = "";
+    }
+
+    Object.assign(this, $$source);
+  }
+
+  /**
+   * Creates a new Server instance from a string or object.
+   */
+  static createFrom($$source: any = {}): Server {
+    let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
+    return new Server($$parsedSource as Partial<Server>);
+  }
+}
+
 // Private type creation functions
 const $$createType0 = Scoop.createFrom;
 const $$createType1 = $Create.Array($$createType0);

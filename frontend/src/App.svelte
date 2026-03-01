@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Events } from "@wailsio/runtime";
   import { onDestroy, onMount } from "svelte";
-  import { Method, KV, Backend, Scoop, Response, Collection } from "../bindings/changeme";
+  import { Method, KV, Backend, Scoop, Response, Collection, Server } from "../bindings/changeme";
   import KvInput from "$lib/components/kv-input.svelte";
   import RawInput from "$lib/components/raw-input.svelte";
   import DotSpinner from "$lib/components/dot-spinner.svelte";
@@ -39,6 +39,8 @@
   let headers: KV[] = $state([]);
   let queryParams: KV[] = $state([]);
   let body: KV[] = $state([]);
+
+  let currentServer: Server = $state(new Server({ name: "", url: "" }));
 
   let loading: boolean = $state(false);
 
@@ -506,7 +508,12 @@
       {#if showCmdPalette}
         <!--CmdPalette-->
         <div class=" relative z-101 w-full max-w-xl shadow-lg">
-          <CmdPalette bind:collection={currentCollection} bind:allScoops bind:currentScoop />
+          <CmdPalette
+            bind:collection={currentCollection}
+            bind:allScoops
+            bind:currentScoop
+            bind:currentServer
+          />
         </div>
       {:else if showRenameScoop}
         <!--Rename Scoop-->
