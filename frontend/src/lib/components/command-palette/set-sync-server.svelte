@@ -26,8 +26,8 @@
       const ok = await SyncServer.SetSyncServer(currentServer);
 
       if (ok) {
-        toast.success(`"${serverName}" Set`);
-        console.log(`${serverName} Server Set`);
+        toast.success(`"${serverName}" Successfully Set`);
+        console.log(`${serverName} Successfully Set`);
       }
     } catch (error) {
       console.error(error);
@@ -59,7 +59,7 @@
 
 <div class="border-border bg-background flex min-h-[20vh] flex-col gap-5 rounded-sm border p-5">
   <div class="flex h-full flex-col items-center justify-center gap-10">
-    <p class="text-lg underline underline-offset-3">Server Credentials</p>
+    <p class="text-lg underline decoration-1 underline-offset-3">Server Credentials</p>
     <div class="flex h-full flex-row items-center justify-center gap-5">
       <input
         class="focus:ring-offset-background bg-background border-border h-8 w-full
@@ -78,7 +78,7 @@
       />
     </div>
 
-    <div class="flex w-full flex-row items-center justify-center gap-10">
+    <div class="flex w-full flex-row items-center justify-center gap-5">
       <button
         class="border-border bg-accent text-foreground focus:ring-offset-background inline-flex h-9 items-center
         justify-center rounded-sm border px-3

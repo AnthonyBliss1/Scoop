@@ -61,20 +61,20 @@
   <!-->Tab Buttons<-->
   <div class="mb-5 flex flex-row items-center justify-center gap-5">
     <button
-      class={`border-border focus:ring-offset-background h-9 rounded-sm border px-3 focus:ring-2 
-              focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none ${createNew ? `bg-green-300/10` : ``}`}
+      class={`focus:ring-offset-background h-9 w-45 rounded-sm border border-none focus:ring-2 
+              focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none ${createNew ? `bg-green-300/15` : `bg-muted/70`}`}
       onclick={() => {
         if (createNew) return;
         createNew = !createNew;
         manageExisting = !manageExisting;
       }}
     >
-      Create New
+      New Variable
     </button>
 
     <button
-      class={`border-border focus:ring-offset-background h-9 rounded-sm border px-3 focus:ring-2 
-              focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none ${manageExisting ? `bg-green-300/10` : ``}`}
+      class={`focus:ring-offset-background h-9 w-45 rounded-sm border border-none focus:ring-2 
+              focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none ${manageExisting ? `bg-green-300/15` : `bg-muted/70`}`}
       onclick={() => {
         if (manageExisting) return;
         manageExisting = !manageExisting;
@@ -84,6 +84,7 @@
       Manage Existing
     </button>
   </div>
+
   <!-->Create Tab<-->
   {#if createNew}
     <div class="flex h-full flex-row items-center justify-center gap-5">
@@ -104,7 +105,7 @@
       />
     </div>
 
-    <div class="flex w-full flex-row items-center justify-center gap-10">
+    <div class="flex w-full flex-row items-center justify-center gap-5">
       <button
         class="border-border bg-accent text-foreground focus:ring-offset-background inline-flex h-9 items-center
         justify-center rounded-sm border px-3
@@ -125,6 +126,9 @@
         }}>Cancel</button
       >
     </div>
+
+    <!-->TODO: Make sure this scrolls and displays all overrides correctly
+        That {#each} is a bit sus, dont remember why i did that<-->
   {:else if manageExisting}
     <div class="flex h-full flex-row items-center justify-center gap-5">
       {#each allOv ? allOv[0] : [] as ov}
@@ -133,6 +137,7 @@
     min-w-0 rounded-sm border px-2 text-green-300 shadow-md
     focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
           bind:value={ov.variable}
+          bind:this={inputEl}
           readonly
           placeholder="Enter variable ..."
         />
