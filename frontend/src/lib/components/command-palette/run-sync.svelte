@@ -2,7 +2,7 @@
   import { toast } from "svelte-sonner";
   import ServerUpload from "@lucide/svelte/icons/cloud-upload";
   import ServerDownload from "@lucide/svelte/icons/cloud-download";
-  import { Backend, Server } from "../../../bindings/changeme";
+  import { SyncServer, Server } from "../../../../bindings/changeme";
   import { onMount } from "svelte";
 
   let { cmd = $bindable("Run Sync"), currentServer = $bindable<Server>() } = $props<{
@@ -14,7 +14,7 @@
 
   async function loadDNSOverrides() {
     try {
-      currentServer = await Backend.OpenSyncServer();
+      currentServer = await SyncServer.OpenSyncServer();
     } catch (error) {
       console.error(error);
     }
@@ -23,7 +23,7 @@
   async function sendToServer() {
     loading = true;
     try {
-      const ok = await Backend.SendToServer(currentServer);
+      const ok = await SyncServer.SendToServer(currentServer);
 
       if (ok) {
         toast.success(`App data sucessfully uploaded to "${currentServer.name}"`);

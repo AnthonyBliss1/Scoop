@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { Backend, Collection, Request, Scoop } from "../../../bindings/changeme";
+  import { ScoopService, Collection, Request, Scoop } from "../../../../bindings/changeme";
 
   // TODO: Think about renaming this to create-scoop
   // originally was request but recently created the scoop structure (consisting of Request + Response)
@@ -32,7 +32,7 @@
     tempScoop.name = newScoop;
 
     try {
-      const ok = await Backend.CreateScoop(collection, tempScoop);
+      const ok = await ScoopService.CreateScoop(collection, tempScoop);
 
       if (ok) {
         allScoops.push(tempScoop);

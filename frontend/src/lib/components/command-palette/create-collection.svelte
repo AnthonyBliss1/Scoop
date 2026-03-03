@@ -1,14 +1,14 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { Backend, Collection, Request, Scoop } from "../../../bindings/changeme";
+  import { ScoopService, Collection, Scoop } from "../../../../bindings/changeme";
 
   let {
-    showRenameScoop = $bindable<boolean>(),
+    cmd = $bindable("Create Collection"),
     allScoops = $bindable<Scoop[]>(),
     collection = $bindable<Collection>(),
     currentScoop = $bindable<Scoop>(),
   } = $props<{
-    showRenameScoop: boolean;
+    cmd: any;
     allScoops: Scoop[];
     collection: Collection;
     currentScoop: Scoop;
@@ -16,65 +16,49 @@
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let newScoopName: string = $state(currentScoop.name);
+  let tempCollection: Collection = $state(new Collection());
+  let newCollection: string = $state(""); // using string since user is just prompted for a name
 
-  // TODO: add check to avoid duplicate scoop names
-
-  async function renameScoop() {
-    if (newScoopName === "" || newScoopName === "temp") {
+  async function createCollection() {
+    if (newCollection === "" || newCollection === "temp") {
       toast.error("Please enter a valid name");
       return;
     }
 
+    tempCollection.name = newCollection;
+
     try {
-      replaceScoop();
-      const ok = await Backend.SaveScoop(currentScoop, collection);
+      const ok = await ScoopService.CreateCollection(tempCollection);
 
       if (ok) {
-        console.log(`Renamed Request: ${currentScoop.name}`);
+        collection = tempCollection;
+        currentScoop = new Scoop({ name: "temp" });
+        allScoops = [];
+        console.log(`Created Collection: ${collection.name}`);
       }
     } catch (error) {
       console.error(error);
     } finally {
-      showRenameScoop = false;
+      cmd = "Create New Request";
     }
   }
 
-  function replaceScoop() {
-    // find the index of the scoop to modify (currentScoop)
-    const idx = allScoops.findIndex((s: Scoop) => s.name === currentScoop.name);
-    if (idx === -1) return;
-
-    // need to create temp array
-    // (crete new references for reactivity)
-    let tempAllScoop = [...allScoops];
-    tempAllScoop[idx] = { ...tempAllScoop[idx], name: newScoopName };
-
-    // overwrite the main arrays
-    // (making sure to create new references)
-    allScoops = tempAllScoop;
-    collection = { ...collection, scoops: tempAllScoop };
-
-    // overwrite name of the currentScoop
-    currentScoop.name = newScoopName;
-  }
-
   $effect(() => {
-    if (showRenameScoop === true) {
+    if (cmd === "Create Collection") {
       inputEl?.focus();
     }
   });
 </script>
 
 <div class="border-border bg-background flex flex-col gap-5 rounded-sm border p-5">
-  <p class="flex items-center justify-center">Rename Scoop</p>
+  <p class="flex items-center justify-center">Create Collection</p>
   <input
     class="focus:ring-offset-background bg-background border-border h-8 w-full
     min-w-0 rounded-sm border px-2 text-green-300 shadow-md
     focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none md:min-w-[450px]"
-    bind:value={newScoopName}
+    bind:value={newCollection}
     bind:this={inputEl}
-    placeholder="Enter New Scoop Name..."
+    placeholder="Enter Collection Name..."
   />
 
   <div class="flex w-full flex-row items-center justify-center gap-10">
@@ -84,7 +68,7 @@
         text-sm hover:bg-green-400 hover:text-black focus:ring-2
         focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
-      onclick={renameScoop}>Rename</button
+      onclick={createCollection}>Create</button
     >
 
     <button
@@ -94,7 +78,7 @@
         focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
       onclick={() => {
-        showRenameScoop = false;
+        cmd = null;
       }}>Cancel</button
     >
   </div>

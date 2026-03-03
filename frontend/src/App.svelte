@@ -1,20 +1,30 @@
 <script lang="ts">
   import { Events } from "@wailsio/runtime";
   import { onDestroy, onMount } from "svelte";
-  import { Method, KV, Backend, Scoop, Response, Collection, Server } from "../bindings/changeme";
-  import KvInput from "$lib/components/kv-input.svelte";
-  import RawInput from "$lib/components/raw-input.svelte";
-  import DotSpinner from "$lib/components/dot-spinner.svelte";
-  import ResponseViewer from "$lib/components/response-viewer.svelte";
-  import CmdPalette from "$lib/components/command-palette.svelte";
+
+  import {
+    Method,
+    KV,
+    ScoopService,
+    Scoop,
+    Response,
+    Collection,
+    Server,
+  } from "../bindings/changeme";
+  import KvInput from "$lib/components/ui/kv-input.svelte";
+  import RawInput from "$lib/components/ui/raw-input.svelte";
+  import DotSpinner from "$lib/components/ui/dot-spinner.svelte";
+  import ResponseViewer from "$lib/components/ui/response-viewer.svelte";
+  import CmdPalette from "$lib/components/command-palette/command-palette.svelte";
+  import RenameScoop from "$lib/components/ui/rename-scoop.svelte";
+  import GeneratedCurl from "$lib/components/toolbar/generated-curl.svelte";
+  import HelpKeybindings from "$lib/components/toolbar/help-keybindings.svelte";
+
   import { Toaster } from "$lib/components/ui/sonner/index.js";
   import { toast } from "svelte-sonner";
   import Package from "@lucide/svelte/icons/package";
-  import RenameScoop from "$lib/components/rename-scoop.svelte";
-  import HelpKeybindings from "$lib/components/help-keybindings.svelte";
   import Info from "@lucide/svelte/icons/info";
   import File from "@lucide/svelte/icons/file-braces";
-  import GeneratedCurl from "$lib/components/generated-curl.svelte";
 
   // events emitted from backend
   let onRspMsg: undefined | (() => void);
@@ -115,8 +125,8 @@
     persistFormToRequest(currentScoop);
 
     try {
-      currentScoop.request = await Backend.ModelIntializer(method, url, headers, queryParams);
-      await Backend.SubmitRequest(currentScoop);
+      currentScoop.request = await ScoopService.ModelIntializer(method, url, headers, queryParams);
+      await ScoopService.SubmitRequest(currentScoop);
     } catch (error) {
       console.error(error);
       loading = false;
@@ -126,7 +136,7 @@
   async function onSwitchRequest(): Promise<boolean> {
     try {
       persistFormToRequest(currentScoop);
-      const ok = await Backend.SaveScoop(currentScoop, currentCollection);
+      const ok = await ScoopService.SaveScoop(currentScoop, currentCollection);
       return ok;
     } catch (error) {
       console.log(error);
@@ -141,7 +151,7 @@
     }
 
     try {
-      curlCommand = await Backend.GenerateCurlCommand(currentScoop);
+      curlCommand = await ScoopService.GenerateCurlCommand(currentScoop);
     } catch (error) {
       console.error(error);
     } finally {

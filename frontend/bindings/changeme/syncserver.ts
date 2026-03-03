@@ -14,27 +14,27 @@ import {
 import * as $models from "./models.js";
 
 export function AddQueryParams(s: $models.Scoop | null): $CancellablePromise<void> {
-  return $Call.ByID(1676166479, s);
+  return $Call.ByID(3515702343, s);
 }
 
 export function CheckDNSOverride(s: $models.Scoop): $CancellablePromise<string> {
-  return $Call.ByID(145133263, s);
+  return $Call.ByID(1746250071, s);
 }
 
 export function CreateCollection(c: $models.Collection): $CancellablePromise<boolean> {
-  return $Call.ByID(918511024, c);
+  return $Call.ByID(3995263080, c);
 }
 
 export function CreateDNSOverride(newOv: $models.DNSOverride): $CancellablePromise<boolean> {
-  return $Call.ByID(3781920043, newOv);
+  return $Call.ByID(3836349987, newOv);
 }
 
 export function CreateScoop(c: $models.Collection, s: $models.Scoop): $CancellablePromise<boolean> {
-  return $Call.ByID(3476665536, c, s);
+  return $Call.ByID(185534472, c, s);
 }
 
 export function GenerateCurlCommand(s: $models.Scoop): $CancellablePromise<string> {
-  return $Call.ByID(3798398626, s);
+  return $Call.ByID(2614130154, s);
 }
 
 export function ModelIntializer(
@@ -43,48 +43,48 @@ export function ModelIntializer(
   headers: $models.KV[],
   qParams: $models.KV[],
 ): $CancellablePromise<$models.Request> {
-  return $Call.ByID(3595892640, method, reqURL, headers, qParams).then(($result: any) => {
+  return $Call.ByID(3321767416, method, reqURL, headers, qParams).then(($result: any) => {
     return $$createType0($result);
   });
 }
 
 export function OpenCollections(): $CancellablePromise<$models.Collection[]> {
-  return $Call.ByID(3631902541).then(($result: any) => {
+  return $Call.ByID(151297045).then(($result: any) => {
     return $$createType2($result);
   });
 }
 
 export function OpenDNSOverrides(): $CancellablePromise<[$models.DNSOverride[], string]> {
-  return $Call.ByID(2754441876).then(($result: any) => {
+  return $Call.ByID(2530218684).then(($result: any) => {
     $result[0] = $$createType4($result[0]);
     return $result;
   });
 }
 
 export function OpenSyncServer(): $CancellablePromise<$models.Server> {
-  return $Call.ByID(2350959304).then(($result: any) => {
+  return $Call.ByID(808812320).then(($result: any) => {
     return $$createType5($result);
   });
 }
 
 export function SaveCollection(c: $models.Collection): $CancellablePromise<boolean> {
-  return $Call.ByID(711771153, c);
+  return $Call.ByID(1747504841, c);
 }
 
 export function SaveScoop(s: $models.Scoop, c: $models.Collection): $CancellablePromise<boolean> {
-  return $Call.ByID(1153602115, s, c);
+  return $Call.ByID(2695869835, s, c);
 }
 
 export function SendToServer(s: $models.Server): $CancellablePromise<boolean> {
-  return $Call.ByID(504941912, s);
+  return $Call.ByID(1927157584, s);
 }
 
 export function SetSyncServer(s: $models.Server): $CancellablePromise<boolean> {
-  return $Call.ByID(2363762272, s);
+  return $Call.ByID(1313723400, s);
 }
 
 export function SubmitRequest(s: $models.Scoop): $CancellablePromise<void> {
-  return $Call.ByID(914496385, s);
+  return $Call.ByID(1296865225, s);
 }
 
 // Private type creation functions

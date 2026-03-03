@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -67,23 +66,13 @@ type DNSOverride struct {
 	IPV4     string `json:"ipv4"`
 }
 
-type Server struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
-}
-
-type ServerPayload struct {
-	Collections []Collection  `json:"collections"`
-	DNS         []DNSOverride `json:"dns"`
-}
-
-type Backend struct {
+type ScoopService struct {
 	context context.Context
 }
 
 // Initializes the Scoop model by attaching method, url, headers, query params, and body (body soon)
 
-func (b *Backend) ModelIntializer(method Method, reqURL string, headers []KV, qParams []KV) (Request, error) {
+func (b *ScoopService) ModelIntializer(method Method, reqURL string, headers []KV, qParams []KV) (Request, error) {
 	var r Request
 
 	r.Method = method
@@ -94,7 +83,7 @@ func (b *Backend) ModelIntializer(method Method, reqURL string, headers []KV, qP
 	return r, nil
 }
 
-func (b *Backend) AddQueryParams(s *Scoop) error {
+func (b *ScoopService) AddQueryParams(s *Scoop) error {
 	u, err := url.Parse(s.Request.URL)
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -117,7 +106,7 @@ func (b *Backend) AddQueryParams(s *Scoop) error {
 	return nil
 }
 
-func (b *Backend) SubmitRequest(s Scoop) {
+func (b *ScoopService) SubmitRequest(s Scoop) {
 	go func() {
 		var r Response
 
@@ -210,7 +199,7 @@ func (b *Backend) SubmitRequest(s Scoop) {
 
 // TODO: prevent duplicate Collection names
 
-func (b *Backend) CreateCollection(c Collection) (bool, error) {
+func (b *ScoopService) CreateCollection(c Collection) (bool, error) {
 	if strings.ContainsAny(c.Name, `/\`) {
 		err := errors.New("collection name cannot contain slashes")
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -250,7 +239,7 @@ func (b *Backend) CreateCollection(c Collection) (bool, error) {
 
 // TODO: prevent duplicate Scoop names
 
-func (b *Backend) CreateScoop(c Collection, s Scoop) (bool, error) {
+func (b *ScoopService) CreateScoop(c Collection, s Scoop) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -285,7 +274,7 @@ func (b *Backend) CreateScoop(c Collection, s Scoop) (bool, error) {
 	return true, nil
 }
 
-func (b *Backend) OpenCollections() ([]Collection, error) {
+func (b *ScoopService) OpenCollections() ([]Collection, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -332,7 +321,7 @@ func (b *Backend) OpenCollections() ([]Collection, error) {
 // nearly identical to the CreateCollection function
 // should make one function for create and save (WriteCollection)
 
-func (b *Backend) SaveCollection(c Collection) (bool, error) {
+func (b *ScoopService) SaveCollection(c Collection) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -364,7 +353,7 @@ func (b *Backend) SaveCollection(c Collection) (bool, error) {
 	return true, nil
 }
 
-func (b *Backend) SaveScoop(s Scoop, c Collection) (bool, error) {
+func (b *ScoopService) SaveScoop(s Scoop, c Collection) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -402,7 +391,7 @@ func (b *Backend) SaveScoop(s Scoop, c Collection) (bool, error) {
 	return true, nil
 }
 
-func (b *Backend) OpenDNSOverrides() (allOv []DNSOverride, ovDir string, err error) {
+func (b *ScoopService) OpenDNSOverrides() (allOv []DNSOverride, ovDir string, err error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		return nil, "", err
@@ -446,7 +435,7 @@ func (b *Backend) OpenDNSOverrides() (allOv []DNSOverride, ovDir string, err err
 	return allOv, overrides, nil
 }
 
-func (b *Backend) CheckDNSOverride(s Scoop) (realURL string, err error) {
+func (b *ScoopService) CheckDNSOverride(s Scoop) (realURL string, err error) {
 	allOV, _, err := b.OpenDNSOverrides()
 	if err != nil {
 		return "", err
@@ -462,7 +451,7 @@ func (b *Backend) CheckDNSOverride(s Scoop) (realURL string, err error) {
 	return realURL, nil
 }
 
-func (b *Backend) CreateDNSOverride(newOv DNSOverride) (bool, error) {
+func (b *ScoopService) CreateDNSOverride(newOv DNSOverride) (bool, error) {
 	allOv, ovDir, err := b.OpenDNSOverrides()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -485,7 +474,7 @@ func (b *Backend) CreateDNSOverride(newOv DNSOverride) (bool, error) {
 	return true, nil
 }
 
-func (b *Backend) GenerateCurlCommand(s Scoop) (string, error) {
+func (b *ScoopService) GenerateCurlCommand(s Scoop) (string, error) {
 	// add query params to url
 	b.AddQueryParams(&s)
 
@@ -523,129 +512,4 @@ func (b *Backend) GenerateCurlCommand(s Scoop) (string, error) {
 	}
 
 	return command.String(), nil
-}
-
-func (b *Backend) SetSyncServer(s Server) (ok bool, err error) {
-	base, err := os.UserConfigDir()
-	if err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
-	sServerDir := filepath.Join(base, "Scoop", "Sync-Server")
-
-	// ensure /Scoop/DNS is created in UserConfigDir
-	if err := os.MkdirAll(sServerDir, 0o755); err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
-	serverPath := filepath.Join(sServerDir, "server.json")
-
-	j, err := json.MarshalIndent(s, "", "  ")
-	if err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
-	if err := os.WriteFile(serverPath, j, 0o644); err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (b *Backend) OpenSyncServer() (s Server, err error) {
-	base, err := os.UserConfigDir()
-	if err != nil {
-		return s, err
-	}
-
-	sServerDir := filepath.Join(base, "Scoop", "Sync-Server")
-
-	// ensure /Scoop/DNS is created in UserConfigDir
-	if err := os.MkdirAll(sServerDir, 0o755); err != nil {
-		return s, err
-	}
-
-	serverPath := filepath.Join(sServerDir, "server.json")
-
-	data, err := os.ReadFile(serverPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// Write Emtpy file if server file doesnt exist
-			if err := os.WriteFile(serverPath, []byte{}, 0o644); err != nil {
-				return s, err
-			} else {
-				// after writing the empty file, return empty Server Object
-				return s, nil
-			}
-		}
-		return s, err
-	}
-
-	if err := json.Unmarshal(data, &s); err != nil {
-		return s, err
-	}
-
-	return s, nil
-}
-
-func (b *Backend) SendToServer(s Server) (ok bool, err error) {
-	if s.URL == "" {
-		return false, errors.New("No server URL found")
-	}
-
-	// grab collections
-	colls, err := b.OpenCollections()
-	if err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
-	// grab dnsOverrides
-	dns, _, err := b.OpenDNSOverrides()
-	if err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
-	// craft into a payload object
-	payload := ServerPayload{Collections: colls, DNS: dns}
-
-	// marshal to bytes (for the req body)
-	data, err := json.Marshal(payload)
-	if err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-	reqBody := bytes.NewReader(data)
-
-	// build req with /upload path in url
-	req, err := http.NewRequest("POST", s.URL+"/upload", reqBody)
-	if err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
-	// make sure the server knows the type
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		err := fmt.Errorf("POST to server failed: %q", bodyBytes)
-		return false, err
-	}
-
-	return true, nil
 }

@@ -35,8 +35,11 @@ func main() {
 	// 'Mac' options tailor the application when running an macOS.
 	App = application.New(application.Options{
 		Name:        "Scoop",
-		Description: "A simple doodle tool with WebSockets",
-		Services:    []application.Service{application.NewService(&Backend{})},
+		Description: "REST API client for testing and discovery",
+		Services: []application.Service{
+			application.NewService(&ScoopService{}),
+			application.NewService(&SyncServer{}),
+		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
 		},

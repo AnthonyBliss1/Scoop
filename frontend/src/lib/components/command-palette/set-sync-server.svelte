@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { Backend, Server } from "../../../bindings/changeme";
+  import { SyncServer, Server } from "../../../../bindings/changeme";
   import { onMount } from "svelte";
 
   let { cmd = $bindable("Set Sync Server"), currentServer = $bindable<Server>() } = $props<{
@@ -23,7 +23,7 @@
       currentServer.name = serverName;
       currentServer.url = serverURL;
 
-      const ok = await Backend.SetSyncServer(currentServer);
+      const ok = await SyncServer.SetSyncServer(currentServer);
 
       if (ok) {
         toast.success(`"${serverName}" Set`);
@@ -38,7 +38,7 @@
 
   async function loadDNSOverrides() {
     try {
-      currentServer = await Backend.OpenSyncServer();
+      currentServer = await SyncServer.OpenSyncServer();
     } catch (error) {
       console.error(error);
     }

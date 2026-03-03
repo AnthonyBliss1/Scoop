@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { KV } from "bindings/changeme";
+  import type { KV } from "../../../../bindings/changeme";
   import Plus from "@lucide/svelte/icons/plus";
   import Minus from "@lucide/svelte/icons/minus";
 

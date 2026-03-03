@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { KV } from "bindings/changeme";
+  import type { KV } from "../../../../bindings/changeme";
   import { onMount } from "svelte";
 
   type Mode = "isHeader" | "isQParam" | "isBody" | undefined;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Send from "@lucide/svelte/icons/send";
   import * as Command from "$lib/components/ui/command/index.js";
-  import { Backend, Collection, Scoop } from "../../../bindings/changeme";
+  import { ScoopService, Collection, Scoop } from "../../../../bindings/changeme";
   import { onMount } from "svelte";
 
   // binding current collection and request to component
@@ -23,7 +23,7 @@
 
   async function OpenCollections() {
     try {
-      availCollections = await Backend.OpenCollections();
+      availCollections = await ScoopService.OpenCollections();
 
       if (availCollections.length > 0) {
         console.log(`Loaded ${availCollections.length} Collection(s)`);

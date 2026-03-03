@@ -10,7 +10,7 @@
   import { onDestroy, onMount } from "svelte";
   import CreateCollection from "./create-collection.svelte";
   import CreateRequest from "./create-request.svelte";
-  import type { Collection, Scoop, Server } from "bindings/changeme";
+  import type { Collection, Scoop, Server } from "../../../../bindings/changeme";
   import OpenCollection from "./open-collection.svelte";
   import DnsOverride from "./dns-override.svelte";
   import SetSyncServer from "./set-sync-server.svelte";

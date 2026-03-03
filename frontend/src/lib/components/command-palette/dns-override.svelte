@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { Backend, DNSOverride } from "../../../bindings/changeme";
+  import { ScoopService, DNSOverride } from "../../../../bindings/changeme";
   import { onMount } from "svelte";
 
   let { cmd = $bindable("Create New Request") } = $props<{
@@ -23,7 +23,7 @@
     }
 
     try {
-      const ok = await Backend.CreateDNSOverride(
+      const ok = await ScoopService.CreateDNSOverride(
         new DNSOverride({ variable: newVariable, ipv4: variableIPV4 }),
       );
 
@@ -40,7 +40,7 @@
 
   async function loadDNSOverrides() {
     try {
-      allOv = await Backend.OpenDNSOverrides();
+      allOv = await ScoopService.OpenDNSOverrides();
     } catch (error) {
       console.error(error);
     }

@@ -1,0 +1,152 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+)
+
+type Server struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+type ServerPayload struct {
+	Collections []Collection  `json:"collections"`
+	DNS         []DNSOverride `json:"dns"`
+}
+
+type SyncServer struct {
+	ScoopService
+}
+
+func (b *SyncServer) SetSyncServer(s Server) (ok bool, err error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	sServerDir := filepath.Join(base, "Scoop", "Sync-Server")
+
+	// ensure /Scoop/DNS is created in UserConfigDir
+	if err := os.MkdirAll(sServerDir, 0o755); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	serverPath := filepath.Join(sServerDir, "server.json")
+
+	j, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	if err := os.WriteFile(serverPath, j, 0o644); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (b *SyncServer) OpenSyncServer() (s Server, err error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		return s, err
+	}
+
+	sServerDir := filepath.Join(base, "Scoop", "Sync-Server")
+
+	// ensure /Scoop/DNS is created in UserConfigDir
+	if err := os.MkdirAll(sServerDir, 0o755); err != nil {
+		return s, err
+	}
+
+	serverPath := filepath.Join(sServerDir, "server.json")
+
+	data, err := os.ReadFile(serverPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Write Emtpy file if server file doesnt exist
+			if err := os.WriteFile(serverPath, []byte{}, 0o644); err != nil {
+				return s, err
+			} else {
+				// after writing the empty file, return empty Server Object
+				return s, nil
+			}
+		}
+		return s, err
+	}
+
+	if err := json.Unmarshal(data, &s); err != nil {
+		return s, err
+	}
+
+	return s, nil
+}
+
+func (b *SyncServer) SendToServer(s Server) (ok bool, err error) {
+	if s.URL == "" {
+		return false, errors.New("No server URL found")
+	}
+
+	// grab collections
+	colls, err := b.OpenCollections()
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	// grab dnsOverrides
+	dns, _, err := b.OpenDNSOverrides()
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	// craft into a payload object
+	payload := ServerPayload{Collections: colls, DNS: dns}
+
+	// marshal to bytes (for the req body)
+	data, err := json.Marshal(payload)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+	reqBody := bytes.NewReader(data)
+
+	// build req with /upload path in url
+	req, err := http.NewRequest("POST", s.URL+"/upload", reqBody)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	// make sure the server knows the type
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		err := fmt.Errorf("POST to server failed: %q", bodyBytes)
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	return true, nil
+}

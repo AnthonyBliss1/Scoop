@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import * as monaco from "monaco-editor";
   import { defineMyTheme } from "$lib/monaco/theme";
+
+  import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+  import "monaco-editor/esm/vs/language/json/monaco.contribution";
+  import "monaco-editor/esm/vs/language/html/monaco.contribution";
 
   export let value = "";
   export let contentType = "";
