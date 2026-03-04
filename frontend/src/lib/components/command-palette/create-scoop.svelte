@@ -1,21 +1,12 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { ScoopService, Collection, Request, Scoop } from "../../../../bindings/changeme";
+  import { ScoopService, Request, Scoop } from "../../../../bindings/changeme";
+  import { getAppState } from "$lib/store/AppState.svelte";
 
-  // TODO: Think about renaming this to create-scoop
-  // originally was request but recently created the scoop structure (consisting of Request + Response)
-  // not sure how committed i am to this
+  const app = getAppState();
 
-  let {
-    cmd = $bindable("Create New Request"),
-    allScoops = $bindable<Scoop[]>(),
-    collection = $bindable<Collection>(),
-    currentScoop = $bindable<Scoop>(),
-  } = $props<{
+  let { cmd = $bindable("Create New Request") } = $props<{
     cmd: any;
-    allScoops: Scoop[];
-    collection: Collection;
-    currentScoop: Scoop;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
@@ -32,16 +23,16 @@
     tempScoop.name = newScoop;
 
     try {
-      const ok = await ScoopService.CreateScoop(collection, tempScoop);
+      const ok = await ScoopService.CreateScoop(app.currentCollection, tempScoop);
 
       if (ok) {
-        allScoops.push(tempScoop);
+        app.allScoops.push(tempScoop);
 
         // only override currentScoop if created scoop is the first in the collection
-        if (currentScoop.name === "temp") currentScoop = allScoops[0];
+        if (app.currentScoop.name === "temp") app.currentScoop = app.allScoops[0];
 
         // this seems to work here but not sure why, need to investigate
-        collection.scoops.push(tempScoop);
+        app.currentCollection.scoops.push(tempScoop);
         console.log(`Created Request: ${tempScoop.name}`);
       }
     } catch (error) {
@@ -52,21 +43,21 @@
   }
 
   $effect(() => {
-    if (cmd === "Create New Request") {
+    if (cmd === "Create New Scoop") {
       inputEl?.focus();
     }
   });
 </script>
 
 <div class="border-border bg-background flex flex-col gap-5 rounded-sm border p-5">
-  <p class="flex items-center justify-center">Create New Request</p>
+  <p class="flex items-center justify-center">Create New Scoop</p>
   <input
     class="focus:ring-offset-background bg-background border-border h-8 w-full
     min-w-0 rounded-sm border px-2 text-green-300 shadow-md
     focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none md:min-w-[450px]"
     bind:value={newScoop}
     bind:this={inputEl}
-    placeholder="Enter Request Name..."
+    placeholder="Enter Scoop Name..."
   />
 
   <div class="flex w-full flex-row items-center justify-center gap-10">

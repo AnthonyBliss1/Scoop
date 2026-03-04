@@ -1,7 +1,7 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { toast } from "svelte-sonner";
   import { ScoopService, DNSOverride } from "../../../../bindings/changeme";
-  import { onMount } from "svelte";
 
   let { cmd = $bindable("Create New Request") } = $props<{
     cmd: any;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy, onMount } from "svelte";
   import PackagePlus from "@lucide/svelte/icons/package-plus";
   import PackageOpen from "@lucide/svelte/icons/package-open";
   import Send from "@lucide/svelte/icons/send";
@@ -7,17 +8,18 @@
   import Cloud from "@lucide/svelte/icons/cloud-backup";
 
   import * as Command from "$lib/components/ui/command/index.js";
-  import { onDestroy, onMount } from "svelte";
   import CreateCollection from "./create-collection.svelte";
-  import CreateRequest from "./create-request.svelte";
-  import type { Collection, Scoop, Server } from "../../../../bindings/changeme";
+  import CreateScoop from "./create-scoop.svelte";
   import OpenCollection from "./open-collection.svelte";
   import DnsOverride from "./dns-override.svelte";
   import SetSyncServer from "./set-sync-server.svelte";
   import RunSync from "./run-sync.svelte";
+  import { getAppState } from "$lib/store/AppState.svelte";
+
+  const app = getAppState();
 
   type Command =
-    | "Create New Request"
+    | "Create New Scoop"
     | "Create Collection"
     | "Open Collection"
     | "Configure DNS Override"
@@ -25,27 +27,15 @@
     | "Run Sync";
 
   let cmd: Command = $derived.by((): Command => {
-    if (collection.name === "temp") {
+    if (app.currentCollection.name === "temp") {
       return "Create Collection";
     } else {
-      return "Create New Request";
+      return "Create New Scoop";
     }
   });
   let executeCmd = $state<Command | null>(null);
 
   let inputEl: HTMLInputElement | null = $state(null);
-
-  let {
-    collection = $bindable<Collection>(),
-    allScoops = $bindable<Scoop[]>(),
-    currentScoop = $bindable<Scoop>(),
-    currentServer = $bindable<Server>(),
-  } = $props<{
-    collection: Collection;
-    allScoops: Scoop[];
-    currentScoop: Scoop;
-    currentServer: Server;
-  }>();
 
   $effect(() => {
     if (!executeCmd) {
@@ -75,9 +65,9 @@
       <Command.Group heading="Suggested">
         <Command.Item
           value="Create New Request"
-          disabled={collection.name === "temp" ? true : false}
+          disabled={app.currentCollection.name === "temp" ? true : false}
           onclick={() => {
-            executeCmd = "Create New Request";
+            executeCmd = "Create New Scoop";
           }}
         >
           <Send class="text-green-500" />
@@ -143,16 +133,16 @@
       </Command.Group>
     </Command.List>
   </Command.Root>
-{:else if executeCmd === "Create New Request"}
-  <CreateRequest bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
+{:else if executeCmd === "Create New Scoop"}
+  <CreateScoop bind:cmd={executeCmd} />
 {:else if executeCmd === "Create Collection"}
-  <CreateCollection bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
+  <CreateCollection bind:cmd={executeCmd} />
 {:else if executeCmd === "Open Collection"}
-  <OpenCollection bind:cmd={executeCmd} bind:allScoops bind:collection bind:currentScoop />
+  <OpenCollection bind:cmd={executeCmd} />
 {:else if executeCmd === "Configure DNS Override"}
   <DnsOverride bind:cmd={executeCmd} />
 {:else if executeCmd === "Set Sync Server"}
-  <SetSyncServer bind:cmd={executeCmd} bind:currentServer />
+  <SetSyncServer bind:cmd={executeCmd} />
 {:else if executeCmd === "Run Sync"}
-  <RunSync bind:cmd={executeCmd} bind:currentServer />
+  <RunSync bind:cmd={executeCmd} />
 {/if}

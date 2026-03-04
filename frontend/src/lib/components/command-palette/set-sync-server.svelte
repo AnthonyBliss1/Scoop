@@ -1,17 +1,19 @@
 <script lang="ts">
-  import { toast } from "svelte-sonner";
-  import { SyncServer, Server } from "../../../../bindings/changeme";
   import { onMount } from "svelte";
+  import { toast } from "svelte-sonner";
+  import { SyncServer } from "../../../../bindings/changeme";
+  import { getAppState } from "$lib/store/AppState.svelte";
 
-  let { cmd = $bindable("Set Sync Server"), currentServer = $bindable<Server>() } = $props<{
+  const app = getAppState();
+
+  let { cmd = $bindable("Set Sync Server") } = $props<{
     cmd: any;
-    currentServer: Server;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let serverName: string = $derived(currentServer.name);
-  let serverURL: string = $derived(currentServer.url);
+  let serverName: string = $derived(app.currentServer.name);
+  let serverURL: string = $derived(app.currentServer.url);
 
   async function setSyncServer() {
     if (serverName === "" || serverURL === "") {
@@ -20,10 +22,10 @@
     }
 
     try {
-      currentServer.name = serverName;
-      currentServer.url = serverURL;
+      app.currentServer.name = serverName;
+      app.currentServer.url = serverURL;
 
-      const ok = await SyncServer.SetSyncServer(currentServer);
+      const ok = await SyncServer.SetSyncServer(app.currentServer);
 
       if (ok) {
         toast.success(`"${serverName}" Successfully Set`);
@@ -38,7 +40,7 @@
 
   async function loadDNSOverrides() {
     try {
-      currentServer = await SyncServer.OpenSyncServer();
+      app.currentServer = await SyncServer.OpenSyncServer();
     } catch (error) {
       console.error(error);
     }
@@ -51,7 +53,7 @@
   });
 
   onMount(() => {
-    if (currentServer.name === "" && currentServer.url === "") {
+    if (app.currentServer.name === "" && app.currentServer.url === "") {
       loadDNSOverrides();
     }
   });

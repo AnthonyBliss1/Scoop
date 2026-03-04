@@ -3,18 +3,19 @@
   import { toast } from "svelte-sonner";
   import ServerUpload from "@lucide/svelte/icons/cloud-upload";
   import ServerDownload from "@lucide/svelte/icons/cloud-download";
-  import { SyncServer, Server } from "../../../../bindings/changeme";
+  import { SyncServer } from "../../../../bindings/changeme";
+  import { getAppState } from "$lib/store/AppState.svelte";
 
-  let { cmd = $bindable("Run Sync"), currentServer = $bindable<Server>() } = $props<{
+  const app = getAppState();
+  let { cmd = $bindable("Run Sync") } = $props<{
     cmd: any;
-    currentServer: Server;
   }>();
 
   let loading: boolean = $state(false);
 
   async function openSyncServer() {
     try {
-      currentServer = await SyncServer.OpenSyncServer();
+      app.currentServer = await SyncServer.OpenSyncServer();
     } catch (error) {
       console.error(error);
     }
@@ -23,10 +24,10 @@
   async function sendToServer() {
     loading = true;
     try {
-      const ok = await SyncServer.SendToServer(currentServer);
+      const ok = await SyncServer.SendToServer(app.currentServer);
 
       if (ok) {
-        toast.success(`App data sucessfully pushed to "${currentServer.name}"`);
+        toast.success(`App data sucessfully pushed to "${app.currentServer.name}"`);
         loading = false;
         cmd = null;
       }
@@ -39,7 +40,7 @@
   // TODO: add the receive from server function
 
   onMount(() => {
-    if (currentServer.name !== "" && currentServer.url !== "") {
+    if (app.currentServer.name !== "" && app.currentServer.url !== "") {
       openSyncServer();
     } else {
       toast.warning("No server has been set");

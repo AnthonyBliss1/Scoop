@@ -1,16 +1,12 @@
 <script lang="ts">
   import { Events } from "@wailsio/runtime";
   import { onDestroy, onMount } from "svelte";
+  import { Toaster } from "$lib/components/ui/sonner/index.js";
+  import { toast } from "svelte-sonner";
 
-  import {
-    Method,
-    KV,
-    ScoopService,
-    Scoop,
-    Response,
-    Collection,
-    Server,
-  } from "../bindings/changeme";
+  import { Method, ScoopService, Scoop, Response } from "../bindings/changeme";
+  import { setAppState } from "$lib/store/AppState.svelte";
+
   import KvInput from "$lib/components/ui/kv-input.svelte";
   import RawInput from "$lib/components/ui/raw-input.svelte";
   import DotSpinner from "$lib/components/ui/dot-spinner.svelte";
@@ -20,11 +16,13 @@
   import GeneratedCurl from "$lib/components/toolbar/generated-curl.svelte";
   import HelpKeybindings from "$lib/components/toolbar/help-keybindings.svelte";
 
-  import { Toaster } from "$lib/components/ui/sonner/index.js";
-  import { toast } from "svelte-sonner";
   import Package from "@lucide/svelte/icons/package";
   import Info from "@lucide/svelte/icons/info";
   import File from "@lucide/svelte/icons/file-braces";
+
+  // encapsulates all the important reactive vars
+  // easier to share between components this way
+  const appState = setAppState();
 
   // events emitted from backend
   let onRspMsg: undefined | (() => void);
@@ -35,22 +33,6 @@
   let showHelp: boolean = $state(false);
   let showCurl: boolean = $state(false);
   let reqParamsHidden: boolean = $state(false);
-
-  // set default to temp
-  let currentCollection: Collection = $state(new Collection({ name: "temp" }));
-  let allScoops: Scoop[] = $state([]);
-  let currentScoop: Scoop = $state(new Scoop({ name: "temp" }));
-
-  let method: Method = $state(Method.Empty);
-  let url: string = $state("");
-  let response: Response = $state(new Response());
-  let curlCommand: string = $state("");
-
-  let headers: KV[] = $state([]);
-  let queryParams: KV[] = $state([]);
-  let body: KV[] = $state([]);
-
-  let currentServer: Server = $state(new Server({ name: "", url: "" }));
 
   let loading: boolean = $state(false);
 
@@ -85,23 +67,23 @@
   }
 
   function hydrateFormFromRequest(s: Scoop) {
-    method = (s.request.method ?? Method.Empty) as Method;
-    url = s.request.url ?? "";
-    response = s.response;
-    headers = s.request.headers;
-    queryParams = s.request.query_params;
+    appState.method = (s.request.method ?? Method.Empty) as Method;
+    appState.url = s.request.url ?? "";
+    appState.response = s.response;
+    appState.headers = s.request.headers;
+    appState.queryParams = s.request.query_params;
   }
 
   function persistFormToRequest(s: Scoop) {
-    s.request.method = method;
-    s.request.url = url;
-    s.response = response;
-    s.request.headers = headers;
-    s.request.query_params = queryParams;
+    s.request.method = appState.method;
+    s.request.url = appState.url;
+    s.response = appState.response;
+    s.request.headers = appState.headers;
+    s.request.query_params = appState.queryParams;
   }
 
   $effect(() => {
-    hydrateFormFromRequest(currentScoop);
+    hydrateFormFromRequest(appState.currentScoop);
   });
 
   async function onSend(method: Method, url: string) {
@@ -119,14 +101,19 @@
       return;
     }
 
-    currentScoop.response = new Response();
+    appState.currentScoop.response = new Response();
     loading = true;
 
-    persistFormToRequest(currentScoop);
+    persistFormToRequest(appState.currentScoop);
 
     try {
-      currentScoop.request = await ScoopService.ModelIntializer(method, url, headers, queryParams);
-      await ScoopService.SubmitRequest(currentScoop);
+      appState.currentScoop.request = await ScoopService.ModelIntializer(
+        method,
+        url,
+        appState.headers,
+        appState.queryParams,
+      );
+      await ScoopService.SubmitRequest(appState.currentScoop);
     } catch (error) {
       console.error(error);
       loading = false;
@@ -135,8 +122,8 @@
 
   async function onSwitchRequest(): Promise<boolean> {
     try {
-      persistFormToRequest(currentScoop);
-      const ok = await ScoopService.SaveScoop(currentScoop, currentCollection);
+      persistFormToRequest(appState.currentScoop);
+      const ok = await ScoopService.SaveScoop(appState.currentScoop, appState.currentCollection);
       return ok;
     } catch (error) {
       console.log(error);
@@ -145,13 +132,13 @@
   }
 
   async function generateCurl() {
-    if (currentScoop.name === "temp") {
+    if (appState.currentScoop.name === "temp") {
       toast.warning("Please create a valid request first");
       return;
     }
 
     try {
-      curlCommand = await ScoopService.GenerateCurlCommand(currentScoop);
+      appState.curlCommand = await ScoopService.GenerateCurlCommand(appState.currentScoop);
     } catch (error) {
       console.error(error);
     } finally {
@@ -173,7 +160,7 @@
 
   const renameScoop = (event: KeyboardEvent) => {
     if (event.ctrlKey && (event.key === "R" || event.code === "KeyR")) {
-      if (currentScoop.name === "temp") {
+      if (appState.currentScoop.name === "temp") {
         toast.warning("Cannot rename a temporary Scoop");
       } else {
         showRenameScoop = !showRenameScoop;
@@ -201,15 +188,15 @@
     if (event.ctrlKey && event.key > "0" && event.key <= "9") {
       const n: number = Number(event.key);
 
-      if (n > allScoops.length) return;
+      if (n > appState.allScoops.length) return;
 
       console.log(`Switch Request Fired! Ctrl + ${n}`);
 
       const ok = await onSwitchRequest();
       if (ok) {
-        currentScoop = allScoops[n - 1];
-        response = currentScoop.response ?? "";
-        queryParams = currentScoop.request.query_params;
+        appState.currentScoop = appState.allScoops[n - 1];
+        appState.response = appState.currentScoop.response ?? "";
+        appState.queryParams = appState.currentScoop.request.query_params;
       }
     }
   };
@@ -219,9 +206,9 @@
       const s = event.data as Scoop;
 
       // want to use reactive plain objects in UI since Svelete reactivity doesnt like classes
-      response = s.response;
-      url = s.request.url;
-      persistFormToRequest(currentScoop);
+      appState.response = s.response;
+      appState.url = s.request.url;
+      persistFormToRequest(appState.currentScoop);
 
       loading = false;
     });
@@ -266,10 +253,10 @@
         <p>Method:</p>
         <div class="relative w-full max-w-[8rem] min-w-0">
           <select
-            bind:value={method}
+            bind:value={appState.method}
             class={`border-border bg-accent h-9 w-full min-w-0
             appearance-none rounded-sm border px-3 pr-8
-            ${methodColor(method)}
+            ${methodColor(appState.method)}
             focus:ring-offset-background focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none`}
           >
             <option value="GET">GET</option>
@@ -299,7 +286,7 @@
         <input
           class="focus:ring-offset-background w-full min-w-0 text-green-300 focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
           placeholder="https:// ..."
-          bind:value={url}
+          bind:value={appState.url}
         />
       </div>
       <button
@@ -310,7 +297,7 @@
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
         disabled={loading}
         onclick={() => {
-          onSend(method, url);
+          onSend(appState.method, appState.url);
         }}
       >
         Send
@@ -353,9 +340,9 @@
               </div>
             </div>
             {#if headerTType === "raw"}
-              <RawInput bind:content={headers} inputMode={"isHeader"} />
+              <RawInput bind:content={appState.headers} inputMode={"isHeader"} />
             {:else}
-              <KvInput bind:content={headers} inputMode={"isHeader"} />
+              <KvInput bind:content={appState.headers} inputMode={"isHeader"} />
             {/if}
           </div>
 
@@ -389,9 +376,9 @@
               </div>
             </div>
             {#if qParamTType === "raw"}
-              <RawInput bind:content={queryParams} inputMode={"isQParam"} />
+              <RawInput bind:content={appState.queryParams} inputMode={"isQParam"} />
             {:else}
-              <KvInput bind:content={queryParams} inputMode={"isQParam"} />
+              <KvInput bind:content={appState.queryParams} inputMode={"isQParam"} />
             {/if}
           </div>
 
@@ -414,7 +401,7 @@
                 </label>
               </div>
             </div>
-            <RawInput bind:content={body} inputMode={"isBody"} />
+            <RawInput bind:content={appState.body} inputMode={"isBody"} />
           </div>
         </div>
       </div>
@@ -425,10 +412,10 @@
       <!-->Response Title Section<-->
       <div class="mb-3 flex flex-row gap-2">
         <p class="px-3 text-sm underline underline-offset-3">Response</p>
-        {#if response.body !== ""}
-          <p class="border-border border px-2 text-sm">{response.status}</p>
-          <p class="border-border border px-2 text-sm">{`${response.size}B`}</p>
-          <p class="border-border border px-2 text-sm">{response.duration} ms</p>
+        {#if appState.response.body !== ""}
+          <p class="border-border border px-2 text-sm">{appState.response.status}</p>
+          <p class="border-border border px-2 text-sm">{`${appState.response.size}B`}</p>
+          <p class="border-border border px-2 text-sm">{appState.response.duration} ms</p>
         {:else if loading}
           <DotSpinner />
         {/if}
@@ -441,25 +428,43 @@
           {reqParamsHidden === false ? "+" : "-"}
         </button>
       </div>
-      <ResponseViewer value={response.body ?? ""} contentType={response.content_type ?? ""} />
+      <ResponseViewer
+        value={appState.response.body ?? ""}
+        contentType={appState.response.content_type ?? ""}
+      />
     </div>
     <div class="-mx-10 h-8 items-center rounded-b-sm bg-green-950/30">
       <div class="flex h-full flex-row items-center gap-5 px-10 text-sm text-green-500/90">
         <div class="flex flex-row gap-2">
-          <Package class={currentCollection.name === "temp" ? `text-blue-500/90` : ``} size={20} />
-          <p class={currentCollection.name === "temp" ? `text-blue-500/90` : `text-green-400`}>
-            {currentCollection.name}
+          <Package
+            class={appState.currentCollection.name === "temp" ? `text-blue-500/90` : ``}
+            size={20}
+          />
+          <p
+            class={appState.currentCollection.name === "temp"
+              ? `text-blue-500/90`
+              : `text-green-400`}
+          >
+            {appState.currentCollection.name}
           </p>
         </div>
 
-        {#if currentScoop.name !== "temp"}
+        {#if appState.currentScoop.name !== "temp"}
           <!-->TODO: add some logic to handle overflow<-->
-          {#each allScoops as scoop, i}
+          {#each appState.allScoops as scoop, i}
             <div class="flex flex-row gap-1">
-              <p class={currentScoop.name === scoop.name ? `text-blue-500` : `text-green-400`}>
+              <p
+                class={appState.currentScoop.name === scoop.name
+                  ? `text-blue-500`
+                  : `text-green-400`}
+              >
                 [{i + 1}]
               </p>
-              <p class={currentScoop.name === scoop.name ? `text-blue-500` : `text-green-400`}>
+              <p
+                class={appState.currentScoop.name === scoop.name
+                  ? `text-blue-500`
+                  : `text-green-400`}
+              >
                 {scoop.name}
               </p>
             </div>
@@ -518,22 +523,12 @@
       {#if showCmdPalette}
         <!--CmdPalette-->
         <div class=" relative z-101 w-full max-w-xl shadow-lg">
-          <CmdPalette
-            bind:collection={currentCollection}
-            bind:allScoops
-            bind:currentScoop
-            bind:currentServer
-          />
+          <CmdPalette />
         </div>
       {:else if showRenameScoop}
         <!--Rename Scoop-->
         <div class=" relative z-101 w-full max-w-xl shadow-lg">
-          <RenameScoop
-            bind:collection={currentCollection}
-            bind:allScoops
-            bind:currentScoop
-            bind:showRenameScoop
-          />
+          <RenameScoop bind:showRenameScoop />
         </div>
       {:else if showHelp}
         <!--Keybindings Help Component-->
@@ -543,7 +538,7 @@
       {:else if showCurl}
         <!--Generated CURL Command-->
         <div class=" relative z-101 w-full max-w-xl shadow-lg">
-          <GeneratedCurl bind:curlCommand />
+          <GeneratedCurl />
         </div>
       {/if}
     </div>

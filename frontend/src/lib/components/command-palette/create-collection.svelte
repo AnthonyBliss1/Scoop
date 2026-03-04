@@ -1,17 +1,12 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
   import { ScoopService, Collection, Scoop } from "../../../../bindings/changeme";
+  import { getAppState } from "$lib/store/AppState.svelte";
 
-  let {
-    cmd = $bindable("Create Collection"),
-    allScoops = $bindable<Scoop[]>(),
-    collection = $bindable<Collection>(),
-    currentScoop = $bindable<Scoop>(),
-  } = $props<{
+  const app = getAppState();
+
+  let { cmd = $bindable("Create Collection") } = $props<{
     cmd: any;
-    allScoops: Scoop[];
-    collection: Collection;
-    currentScoop: Scoop;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
@@ -31,10 +26,10 @@
       const ok = await ScoopService.CreateCollection(tempCollection);
 
       if (ok) {
-        collection = tempCollection;
-        currentScoop = new Scoop({ name: "temp" });
-        allScoops = [];
-        console.log(`Created Collection: ${collection.name}`);
+        app.currentCollection = tempCollection;
+        app.currentScoop = new Scoop({ name: "temp" });
+        app.allScoops = [];
+        console.log(`Created Collection: ${app.currentCollection.name}`);
       }
     } catch (error) {
       console.error(error);

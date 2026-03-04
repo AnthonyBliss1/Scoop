@@ -1,21 +1,14 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Send from "@lucide/svelte/icons/send";
   import * as Command from "$lib/components/ui/command/index.js";
-  import { ScoopService, Collection, Scoop } from "../../../../bindings/changeme";
-  import { onMount } from "svelte";
+  import { ScoopService, Collection } from "../../../../bindings/changeme";
+  import { getAppState } from "$lib/store/AppState.svelte";
 
-  // binding current collection and request to component
-  // will change this to bind a list of requests instead of single request
-  let {
-    cmd = $bindable("Open Collection"),
-    allScoops = $bindable<Scoop[]>(),
-    collection = $bindable<Collection>(),
-    currentScoop = $bindable<Scoop>(),
-  } = $props<{
+  const app = getAppState();
+
+  let { cmd = $bindable("Open Collection") } = $props<{
     cmd: any;
-    allScoops: Scoop[];
-    collection: Collection;
-    currentScoop: Scoop;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
@@ -52,10 +45,10 @@
           <Command.Item
             value={c.name}
             onclick={() => {
-              collection = c;
-              allScoops = c.scoops;
-              currentScoop = allScoops[0];
-              console.log(`allScoops length : ${allScoops.length}`);
+              app.currentCollection = c;
+              app.allScoops = c.scoops;
+              app.currentScoop = app.allScoops[0];
+              console.log(`allScoops length : ${app.allScoops.length}`);
               cmd = null;
             }}
           >

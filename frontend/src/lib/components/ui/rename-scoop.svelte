@@ -1,22 +1,17 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { ScoopService, Collection, Scoop } from "../../../../bindings/changeme";
+  import { ScoopService, Scoop } from "../../../../bindings/changeme";
+  import { getAppState } from "$lib/store/AppState.svelte";
 
-  let {
-    showRenameScoop = $bindable<boolean>(),
-    allScoops = $bindable<Scoop[]>(),
-    collection = $bindable<Collection>(),
-    currentScoop = $bindable<Scoop>(),
-  } = $props<{
+  const app = getAppState();
+
+  let { showRenameScoop = $bindable<boolean>() } = $props<{
     showRenameScoop: boolean;
-    allScoops: Scoop[];
-    collection: Collection;
-    currentScoop: Scoop;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let newScoopName: string = $state(currentScoop.name);
+  let newScoopName: string = $state(app.currentScoop.name);
 
   // TODO: add check to avoid duplicate scoop names
 
@@ -28,10 +23,10 @@
 
     try {
       replaceScoop();
-      const ok = await ScoopService.SaveScoop(currentScoop, collection);
+      const ok = await ScoopService.SaveScoop(app.currentScoop, app.currentCollection);
 
       if (ok) {
-        console.log(`Renamed Request: ${currentScoop.name}`);
+        console.log(`Renamed Request: ${app.currentScoop.name}`);
       }
     } catch (error) {
       console.error(error);
@@ -42,21 +37,21 @@
 
   function replaceScoop() {
     // find the index of the scoop to modify (currentScoop)
-    const idx = allScoops.findIndex((s: Scoop) => s.name === currentScoop.name);
+    const idx = app.allScoops.findIndex((s: Scoop) => s.name === app.currentScoop.name);
     if (idx === -1) return;
 
     // need to create temp array
     // (crete new references for reactivity)
-    let tempAllScoop = [...allScoops];
+    let tempAllScoop = [...app.allScoops];
     tempAllScoop[idx] = { ...tempAllScoop[idx], name: newScoopName };
 
     // overwrite the main arrays
     // (making sure to create new references)
-    allScoops = tempAllScoop;
-    collection = { ...collection, scoops: tempAllScoop };
+    app.allScoops = tempAllScoop;
+    app.currentCollection = { ...app.currentCollection, scoops: tempAllScoop };
 
     // overwrite name of the currentScoop
-    currentScoop.name = newScoopName;
+    app.currentScoop.name = newScoopName;
   }
 
   $effect(() => {
