@@ -9,7 +9,7 @@ Scoop requires the Wails framework to build
 ### Set Up Wails 
 - Install Wails V3 (currently in alpha)
 ```bash
-go install github.com/wailsapp/wails/v3/cmd/wails@latest
+go install github.com/wailsapp/wails/v3/cmd/wails3@latest
 ```
 
 - Check system dependencies
