@@ -14,7 +14,7 @@ interface AppState {
 
   headers: KV[];
   queryParams: KV[];
-  body: KV[];
+  body: string;
 }
 
 export class AppStateClass implements AppState {
@@ -30,7 +30,7 @@ export class AppStateClass implements AppState {
 
   headers: KV[] = $state([]);
   queryParams: KV[] = $state([]);
-  body: KV[] = $state([]);
+  body: string = $state("");
 
   reset() {
     this.currentCollection = new Collection({ name: "temp" });
@@ -45,7 +45,11 @@ export class AppStateClass implements AppState {
 
     this.headers = [];
     this.queryParams = [];
-    this.body = [];
+    this.body = "";
+  }
+
+  resetResponse() {
+    this.response = new Response();
   }
 }
 

@@ -19,6 +19,7 @@
   import Package from "@lucide/svelte/icons/package";
   import Info from "@lucide/svelte/icons/info";
   import File from "@lucide/svelte/icons/file-braces";
+  import BodyInput from "$lib/components/ui/body-input.svelte";
 
   // encapsulates all the important reactive vars
   // easier to share between components this way
@@ -72,6 +73,7 @@
     appState.response = s.response;
     appState.headers = s.request.headers;
     appState.queryParams = s.request.query_params;
+    appState.body = s.request.body;
   }
 
   function persistFormToRequest(s: Scoop) {
@@ -80,6 +82,7 @@
     s.response = appState.response;
     s.request.headers = appState.headers;
     s.request.query_params = appState.queryParams;
+    s.request.body = appState.body;
   }
 
   $effect(() => {
@@ -87,6 +90,9 @@
   });
 
   async function onSend(method: Method, url: string) {
+    // need to reset the response on send
+    appState.resetResponse();
+
     let inputErr: string = "";
 
     if (method === "") {
@@ -112,6 +118,7 @@
         url,
         appState.headers,
         appState.queryParams,
+        appState.body,
       );
       await ScoopService.SubmitRequest(appState.currentScoop);
     } catch (error) {
@@ -401,7 +408,7 @@
                 </label>
               </div>
             </div>
-            <RawInput bind:content={appState.body} inputMode={"isBody"} />
+            <BodyInput />
           </div>
         </div>
       </div>

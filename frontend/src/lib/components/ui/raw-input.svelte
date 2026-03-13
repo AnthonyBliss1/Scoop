@@ -2,7 +2,7 @@
   import type { KV } from "../../../../bindings/changeme";
   import { onMount } from "svelte";
 
-  type Mode = "isHeader" | "isQParam" | "isBody" | undefined;
+  type Mode = "isHeader" | "isQParam";
 
   let { content = $bindable<KV[]>([]), inputMode = $bindable<Mode>() } = $props<{
     inputMode: Mode;

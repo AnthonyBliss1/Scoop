@@ -38,6 +38,7 @@ type Request struct {
 	URL     string `json:"url"`
 	Headers []KV   `json:"headers"`
 	QParams []KV   `json:"query_params"`
+	Body    string `json:"body"`
 }
 
 type Response struct {
@@ -70,20 +71,26 @@ type ScoopService struct {
 	context context.Context
 }
 
-// Initializes the Scoop model by attaching method, url, headers, query params, and body (body soon)
+// Initializes the Scoop model by attaching method, url, headers, query params, and body
 
-func (b *ScoopService) ModelIntializer(method Method, reqURL string, headers []KV, qParams []KV) (Request, error) {
+func (b *ScoopService) ModelIntializer(method Method, reqURL string, headers []KV, qParams []KV, body string) (Request, error) {
 	var r Request
 
 	r.Method = method
 	r.URL = reqURL
 	r.Headers = headers
 	r.QParams = qParams
+	r.Body = body
 
 	return r, nil
 }
 
-func (b *ScoopService) AddQueryParams(s *Scoop) error {
+// TODO:
+// These two funcs - AddQueryParams() and CreateRequest() dont need to be implemented on ScoopService
+// since they're purely backend functions
+// need to clean up the rest of this file and separate it into 'utils'
+
+func AddQueryParams(s *Scoop) error {
 	u, err := url.Parse(s.Request.URL)
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -106,6 +113,25 @@ func (b *ScoopService) AddQueryParams(s *Scoop) error {
 	return nil
 }
 
+func CreateRequest(s Scoop, url string) (r *http.Request, err error) {
+	if s.Request.Body != "" {
+		reqBody := strings.NewReader(s.Request.Body)
+
+		r, err = http.NewRequest(string(s.Request.Method), url, reqBody)
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+		r, err = http.NewRequest(string(s.Request.Method), url, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return r, nil
+}
+
 func (b *ScoopService) SubmitRequest(s Scoop) {
 	go func() {
 		var r Response
@@ -113,7 +139,7 @@ func (b *ScoopService) SubmitRequest(s Scoop) {
 		client := http.Client{}
 
 		// add query params to url
-		b.AddQueryParams(&s)
+		AddQueryParams(&s)
 
 		// check for use of DNS Overrides
 		realURL, err := b.CheckDNSOverride(s)
@@ -127,7 +153,8 @@ func (b *ScoopService) SubmitRequest(s Scoop) {
 			realURL = s.Request.URL
 		}
 
-		req, err := http.NewRequest(string(s.Request.Method), realURL, nil)
+		// if there is a body string then need to add it to the request
+		req, err := CreateRequest(s, realURL)
 		if err != nil {
 			App.Event.Emit("errMsg", fmt.Sprint(err))
 			return
@@ -476,7 +503,7 @@ func (b *ScoopService) CreateDNSOverride(newOv DNSOverride) (bool, error) {
 
 func (b *ScoopService) GenerateCurlCommand(s Scoop) (string, error) {
 	// add query params to url
-	b.AddQueryParams(&s)
+	AddQueryParams(&s)
 
 	// check for use of DNS Overrides
 	realURL, err := b.CheckDNSOverride(s)

@@ -103,6 +103,7 @@ export class Request {
   "url": string;
   "headers": KV[];
   "query_params": KV[];
+  "body": string;
 
   /** Creates a new Request instance. */
   constructor($$source: Partial<Request> = {}) {
@@ -117,6 +118,9 @@ export class Request {
     }
     if (!("query_params" in $$source)) {
       this["query_params"] = [];
+    }
+    if (!("body" in $$source)) {
+      this["body"] = "";
     }
 
     Object.assign(this, $$source);

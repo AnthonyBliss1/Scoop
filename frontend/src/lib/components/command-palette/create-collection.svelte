@@ -34,7 +34,7 @@
     } catch (error) {
       console.error(error);
     } finally {
-      cmd = "Create New Request";
+      cmd = "Create New Scoop";
     }
   }
 

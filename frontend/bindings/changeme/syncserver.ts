@@ -13,10 +13,6 @@ import {
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
-export function AddQueryParams(s: $models.Scoop | null): $CancellablePromise<void> {
-  return $Call.ByID(3515702343, s);
-}
-
 export function CheckDNSOverride(s: $models.Scoop): $CancellablePromise<string> {
   return $Call.ByID(1746250071, s);
 }
@@ -46,8 +42,9 @@ export function ModelIntializer(
   reqURL: string,
   headers: $models.KV[],
   qParams: $models.KV[],
+  body: string,
 ): $CancellablePromise<$models.Request> {
-  return $Call.ByID(3321767416, method, reqURL, headers, qParams).then(($result: any) => {
+  return $Call.ByID(3321767416, method, reqURL, headers, qParams, body).then(($result: any) => {
     return $$createType0($result);
   });
 }
