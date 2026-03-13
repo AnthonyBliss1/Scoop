@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import Send from "@lucide/svelte/icons/send";
   import * as Command from "$lib/components/ui/command/index.js";
-  import { ScoopService, Collection } from "../../../../bindings/changeme";
+  import { ScoopService, Collection, Scoop } from "../../../../bindings/changeme";
   import { getAppState } from "$lib/store/AppState.svelte";
 
   const app = getAppState();
@@ -47,7 +47,12 @@
             onclick={() => {
               app.currentCollection = c;
               app.allScoops = c.scoops;
-              app.currentScoop = app.allScoops[0];
+
+              if (app.allScoops.length > 0) {
+                app.currentScoop = app.allScoops[0];
+              } else {
+                app.currentScoop = new Scoop({ name: "temp" });
+              }
               console.log(`allScoops length : ${app.allScoops.length}`);
               cmd = null;
             }}
