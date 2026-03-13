@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { toast } from "svelte-sonner";
-  import { SyncServer } from "../../../../bindings/changeme";
+  import { Server, SyncServer } from "../../../../bindings/changeme";
   import { getAppState } from "$lib/store/AppState.svelte";
 
   const app = getAppState();
@@ -22,8 +22,7 @@
     }
 
     try {
-      app.currentServer.name = serverName;
-      app.currentServer.url = serverURL;
+      app.currentServer = new Server({ name: serverName, url: serverURL });
 
       const ok = await SyncServer.SetSyncServer(app.currentServer);
 

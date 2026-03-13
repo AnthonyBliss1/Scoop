@@ -22,6 +22,11 @@
   }
 
   async function sendToServer() {
+    if (app.currentServer.name === "" || app.currentServer.url === "") {
+      toast.warning("No server has been set");
+      return;
+    }
+
     loading = true;
     try {
       const ok = await SyncServer.SendToServer(app.currentServer);
@@ -37,13 +42,31 @@
     }
   }
 
-  // TODO: add the receive from server function
+  async function getFromServer() {
+    if (app.currentServer.name === "" || app.currentServer.url === "") {
+      toast.warning("No server has been set");
+      return;
+    }
+
+    loading = true;
+    try {
+      const ok = await SyncServer.GetFromServer(app.currentServer);
+
+      if (ok) {
+        toast.success(`App data sucessfully received from "${app.currentServer.name}"`);
+        app.reset(); // reset app state
+        loading = false;
+        cmd = null;
+      }
+    } catch (error) {
+      loading = false;
+      console.error(error);
+    }
+  }
 
   onMount(() => {
-    if (app.currentServer.name !== "" && app.currentServer.url !== "") {
+    if (app.currentServer.name === "" && app.currentServer.url === "") {
       openSyncServer();
-    } else {
-      toast.warning("No server has been set");
     }
   });
 </script>
@@ -78,9 +101,7 @@
         text-green-300 hover:bg-green-400 hover:text-black focus:ring-2
         focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
-          onclick={() => {
-            cmd = null;
-          }}
+          onclick={getFromServer}
           disabled={loading}
         >
           <ServerDownload class="mr-2" size={20} />

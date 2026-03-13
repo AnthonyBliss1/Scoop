@@ -34,7 +34,7 @@ func (b *SyncServer) SetSyncServer(s Server) (ok bool, err error) {
 
 	sServerDir := filepath.Join(base, "Scoop", "Sync-Server")
 
-	// ensure /Scoop/DNS is created in UserConfigDir
+	// ensure /Scoop/Sync-Server is created in UserConfigDir
 	if err := os.MkdirAll(sServerDir, 0o755); err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
@@ -64,7 +64,7 @@ func (b *SyncServer) OpenSyncServer() (s Server, err error) {
 
 	sServerDir := filepath.Join(base, "Scoop", "Sync-Server")
 
-	// ensure /Scoop/DNS is created in UserConfigDir
+	// ensure /Scoop/Sync-Server is created in UserConfigDir
 	if err := os.MkdirAll(sServerDir, 0o755); err != nil {
 		return s, err
 	}
@@ -141,11 +141,61 @@ func (b *SyncServer) SendToServer(s Server) (ok bool, err error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		err := fmt.Errorf("POST to server failed: %q", bodyBytes)
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
+	}
+
+	return true, nil
+}
+
+func (b *SyncServer) GetFromServer(s Server) (ok bool, err error) {
+	if s.URL == "" {
+		return false, errors.New("No server URL found")
+	}
+
+	resp, err := http.Get(s.URL + "/sync")
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		err := fmt.Errorf("GET from server failed: %q", bodyBytes)
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	j, err := io.ReadAll(resp.Body)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	var payload ServerPayload
+	if err := json.Unmarshal(j, &payload); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	// save the payload data, starting with Collections
+	for _, c := range payload.Collections {
+		if _, err := b.CreateCollection(c); err != nil {
+			App.Event.Emit("errMsg", fmt.Sprint(err))
+			return false, err
+		}
+	}
+
+	// save DNSOverrides
+	for _, ov := range payload.DNS {
+		if _, err := b.CreateDNSOverride(ov); err != nil {
+			App.Event.Emit("errMsg", fmt.Sprint(err))
+			return false, err
+		}
 	}
 
 	return true, nil

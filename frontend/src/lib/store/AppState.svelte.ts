@@ -31,6 +31,22 @@ export class AppStateClass implements AppState {
   headers: KV[] = $state([]);
   queryParams: KV[] = $state([]);
   body: KV[] = $state([]);
+
+  reset() {
+    this.currentCollection = new Collection({ name: "temp" });
+    this.currentScoop = new Scoop({ name: "temp" });
+    this.currentServer = new Server({ name: "", url: "" });
+    this.allScoops = [];
+
+    this.method = Method.Empty;
+    this.url = "";
+    this.response = new Response();
+    this.curlCommand = "";
+
+    this.headers = [];
+    this.queryParams = [];
+    this.body = [];
+  }
 }
 
 const DEFAULT_KEY = "$_app_state";

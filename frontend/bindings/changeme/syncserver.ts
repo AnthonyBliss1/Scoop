@@ -37,6 +37,10 @@ export function GenerateCurlCommand(s: $models.Scoop): $CancellablePromise<strin
   return $Call.ByID(2614130154, s);
 }
 
+export function GetFromServer(s: $models.Server): $CancellablePromise<boolean> {
+  return $Call.ByID(1882007015, s);
+}
+
 export function ModelIntializer(
   method: $models.Method,
   reqURL: string,

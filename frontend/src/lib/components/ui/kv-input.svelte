@@ -14,7 +14,7 @@
 
   function addRow() {
     // max 100 rows
-    if (content.length > 100) return;
+    if (content.length > 40) return;
 
     content = [...content, { key: "", value: "" }];
   }
