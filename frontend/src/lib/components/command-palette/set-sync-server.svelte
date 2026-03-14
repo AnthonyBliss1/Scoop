@@ -37,7 +37,7 @@
     }
   }
 
-  async function loadDNSOverrides() {
+  async function openSyncServer() {
     try {
       app.currentServer = await SyncServer.OpenSyncServer();
     } catch (error) {
@@ -53,7 +53,7 @@
 
   onMount(() => {
     if (app.currentServer.name === "" && app.currentServer.url === "") {
-      loadDNSOverrides();
+      openSyncServer();
     }
   });
 </script>

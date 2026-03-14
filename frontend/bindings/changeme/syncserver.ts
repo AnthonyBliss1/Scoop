@@ -17,6 +17,10 @@ export function CheckDNSOverride(s: $models.Scoop): $CancellablePromise<string> 
   return $Call.ByID(1746250071, s);
 }
 
+export function CheckServerHealth(s: $models.Server): $CancellablePromise<boolean> {
+  return $Call.ByID(696586741, s);
+}
+
 export function CreateCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(3995263080, c);
 }

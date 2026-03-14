@@ -200,3 +200,18 @@ func (b *SyncServer) GetFromServer(s Server) (ok bool, err error) {
 
 	return true, nil
 }
+
+func (b *SyncServer) CheckServerHealth(s Server) (ok bool, err error) {
+	if s.URL == "" {
+		err = errors.New("No server URL found")
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	resp, err := http.Get(s.URL + "/health")
+	if err != nil {
+		return false, err
+	}
+
+	return resp.StatusCode == http.StatusOK, nil
+}

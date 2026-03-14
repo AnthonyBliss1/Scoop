@@ -15,11 +15,12 @@
   import RenameScoop from "$lib/components/ui/rename-scoop.svelte";
   import GeneratedCurl from "$lib/components/toolbar/generated-curl.svelte";
   import HelpKeybindings from "$lib/components/toolbar/help-keybindings.svelte";
+  import BodyInput from "$lib/components/ui/body-input.svelte";
+  import ServerHealth from "$lib/components/ui/server-health.svelte";
 
   import Package from "@lucide/svelte/icons/package";
   import Info from "@lucide/svelte/icons/info";
   import File from "@lucide/svelte/icons/file-braces";
-  import BodyInput from "$lib/components/ui/body-input.svelte";
 
   // encapsulates all the important reactive vars
   // easier to share between components this way
@@ -42,7 +43,6 @@
   let headerTType: TType = $state("raw");
   let qParamTType: TType = $state("raw");
 
-  // TODO: support body payloads in request on backend
   let bodyTType: TType = $state("json");
 
   function methodColor(method: string): string {
@@ -295,6 +295,10 @@
           placeholder="https:// ..."
           bind:value={appState.url}
         />
+      </div>
+      <!-->Server Health Status<-->
+      <div class="flex w-25 items-center gap-2">
+        <ServerHealth />
       </div>
       <button
         class="border-border bg-accent text-foreground focus:ring-offset-background ml-auto inline-flex h-9 items-center
