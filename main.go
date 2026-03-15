@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"log"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -22,6 +23,8 @@ func init() {
 	// and provide a strongly typed JS/TS API for them.
 	application.RegisterEvent[string]("errMsg")
 	application.RegisterEvent[Scoop]("respMsg")
+	application.RegisterEvent[Server]("initiateHealthCheck")
+	application.RegisterEvent[string]("serverHealth")
 }
 
 // main function serves as the application's entry point. It initializes the application, creates a window,
@@ -33,12 +36,15 @@ func main() {
 	// 'Assets' configures the asset server with the 'FS' variable pointing to the frontend files.
 	// 'Bind' is a list of Go struct instances. The frontend has access to the methods of these instances.
 	// 'Mac' options tailor the application when running an macOS.
+
+	SyncService := &SyncServer{}
+
 	App = application.New(application.Options{
 		Name:        "Scoop",
 		Description: "REST API client for testing and discovery",
 		Services: []application.Service{
 			application.NewService(&ScoopService{}),
-			application.NewService(&SyncServer{}),
+			application.NewService(SyncService),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -62,6 +68,33 @@ func main() {
 		},
 		BackgroundColour: application.NewRGB(10, 10, 10),
 		URL:              "/",
+	})
+
+	App.Event.On("initiateHealthCheck", func(e *application.CustomEvent) {
+		server, ok := e.Data.(Server)
+		if !ok {
+			App.Event.Emit("errMsg", "initiateHealthCheck payload was not of type Server")
+			App.Event.Emit("serverHealth", "Offline")
+			return
+		}
+
+		go func(s Server) {
+			for {
+				ok, err := SyncService.CheckServerHealth(server)
+				if err != nil {
+					App.Event.Emit("serverHealth", "Offline")
+				}
+
+				if ok {
+					App.Event.Emit("serverHealth", "Online")
+				} else {
+					App.Event.Emit("serverHealth", "Offline")
+				}
+
+				// sleep 5 seconds before checking health again
+				time.Sleep(5 * time.Second)
+			}
+		}(server)
 	})
 
 	// Run the application. This blocks until the application has been exited.

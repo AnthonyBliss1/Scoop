@@ -13,7 +13,9 @@ declare module "@wailsio/runtime" {
   namespace Events {
     interface CustomEvents {
       errMsg: string;
+      initiateHealthCheck: main$0.Server;
       respMsg: main$0.Scoop;
+      serverHealth: string;
     }
   }
 }

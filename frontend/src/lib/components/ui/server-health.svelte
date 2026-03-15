@@ -1,13 +1,15 @@
 <script lang="ts">
+  import { Events } from "@wailsio/runtime";
   import { getAppState } from "$lib/store/AppState.svelte";
   import { SyncServer } from "../../../../bindings/changeme";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
 
   const app = getAppState();
 
   type Connection = "Offline" | "Online";
-
   let status: Connection = $state("Offline");
+
+  let onHealthCheck: undefined | (() => void);
 
   async function openSyncServer() {
     try {
@@ -18,28 +20,22 @@
     }
   }
 
-  async function checkServerHealth() {
-    try {
-      const ok = await SyncServer.CheckServerHealth(app.currentServer);
-
-      // set the server status accordingly
-      if (ok) {
-        status = "Online";
-      } else {
-        status = "Offline";
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   onMount(async () => {
     await openSyncServer();
 
-    // make sure server is actually set before calling /health
+    onHealthCheck = Events.On("serverHealth", async (event: any) => {
+      const ok = event.data as Connection;
+      status = ok;
+    });
+
+    // make sure server is actually set before initiating the health check poll on backend
     if (app.currentServer.name !== "" && app.currentServer.url !== "") {
-      checkServerHealth();
+      Events.Emit("initiateHealthCheck", app.currentServer);
     }
+  });
+
+  onDestroy(() => {
+    onHealthCheck?.();
   });
 </script>
 
