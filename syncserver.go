@@ -12,8 +12,8 @@ import (
 )
 
 type Server struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
+	Key string `json:"key"`
+	URL string `json:"url"`
 }
 
 type ServerPayload struct {
@@ -24,6 +24,8 @@ type ServerPayload struct {
 type SyncServer struct {
 	ScoopService
 }
+
+var client = &http.Client{}
 
 func (b *SyncServer) SetSyncServer(s Server) (ok bool, err error) {
 	base, err := os.UserConfigDir()
@@ -131,8 +133,7 @@ func (b *SyncServer) SendToServer(s Server) (ok bool, err error) {
 
 	// make sure the server knows the type
 	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
+	req.Header.Set("X-API-Key", s.Key)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -156,7 +157,15 @@ func (b *SyncServer) GetFromServer(s Server) (ok bool, err error) {
 		return false, errors.New("No server URL found")
 	}
 
-	resp, err := http.Get(s.URL + "/sync")
+	req, err := http.NewRequest("GET", s.URL+"/sync", nil)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	req.Header.Add("X-API-Key", s.Key)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
@@ -208,7 +217,15 @@ func (b *SyncServer) CheckServerHealth(s Server) (ok bool, err error) {
 		return false, err
 	}
 
-	resp, err := http.Get(s.URL + "/health")
+	req, err := http.NewRequest("GET", s.URL+"/health", nil)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	req.Header.Add("X-API-Key", s.Key)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return false, err
 	}

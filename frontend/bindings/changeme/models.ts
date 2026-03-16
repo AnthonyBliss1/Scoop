@@ -230,13 +230,13 @@ export class Scoop {
 }
 
 export class Server {
-  "name": string;
+  "key": string;
   "url": string;
 
   /** Creates a new Server instance. */
   constructor($$source: Partial<Server> = {}) {
-    if (!("name" in $$source)) {
-      this["name"] = "";
+    if (!("key" in $$source)) {
+      this["key"] = "";
     }
     if (!("url" in $$source)) {
       this["url"] = "";

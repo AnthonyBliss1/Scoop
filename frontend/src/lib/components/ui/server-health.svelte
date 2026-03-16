@@ -14,11 +14,16 @@
   async function openSyncServer() {
     try {
       app.currentServer = await SyncServer.OpenSyncServer();
-      console.info(`Server set! ${app.currentServer.name}`);
     } catch (error) {
       console.error(error);
     }
   }
+
+  $effect(() => {
+    if (app.currentServer.key !== "" && app.currentServer.url !== "") {
+      Events.Emit("initiateHealthCheck", app.currentServer);
+    }
+  });
 
   onMount(async () => {
     await openSyncServer();
@@ -29,7 +34,7 @@
     });
 
     // make sure server is actually set before initiating the health check poll on backend
-    if (app.currentServer.name !== "" && app.currentServer.url !== "") {
+    if (app.currentServer.key !== "" && app.currentServer.url !== "") {
       Events.Emit("initiateHealthCheck", app.currentServer);
     }
   });

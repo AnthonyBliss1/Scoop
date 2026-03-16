@@ -12,23 +12,23 @@
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let serverName: string = $derived(app.currentServer.name);
+  let serverKey: string = $derived(app.currentServer.key);
   let serverURL: string = $derived(app.currentServer.url);
 
   async function setSyncServer() {
-    if (serverName === "" || serverURL === "") {
-      toast.error("Please enter a valid name and URL");
+    if (serverKey === "" || serverURL === "") {
+      toast.error("Please enter a valid key and URL");
       return;
     }
 
     try {
-      app.currentServer = new Server({ name: serverName, url: serverURL });
+      app.currentServer = new Server({ key: serverKey, url: serverURL });
 
       const ok = await SyncServer.SetSyncServer(app.currentServer);
 
       if (ok) {
-        toast.success(`"${serverName}" Successfully Set`);
-        console.log(`${serverName} Successfully Set`);
+        toast.success("Scoop Server Successfully Set");
+        console.log("Scoop Server Successfully Set");
       }
     } catch (error) {
       console.error(error);
@@ -52,7 +52,7 @@
   });
 
   onMount(() => {
-    if (app.currentServer.name === "" && app.currentServer.url === "") {
+    if (app.currentServer.key === "" && app.currentServer.url === "") {
       openSyncServer();
     }
   });
@@ -66,9 +66,9 @@
         class="focus:ring-offset-background bg-background border-border h-8 w-full
     min-w-0 rounded-sm border px-2 text-green-300 shadow-md
     focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
-        bind:value={serverName}
+        bind:value={serverKey}
         bind:this={inputEl}
-        placeholder="Enter server name ..."
+        placeholder="Enter server API key ..."
       />
       <input
         class="focus:ring-offset-background bg-background border-border h-8 w-full

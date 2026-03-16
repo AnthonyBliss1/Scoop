@@ -20,7 +20,7 @@ interface AppState {
 export class AppStateClass implements AppState {
   currentCollection: Collection = $state(new Collection({ name: "temp" }));
   currentScoop: Scoop = $state(new Scoop({ name: "temp" }));
-  currentServer: Server = $state(new Server({ name: "", url: "" }));
+  currentServer: Server = $state(new Server({ key: "", url: "" }));
   allScoops: Scoop[] = $state([]);
 
   method: Method = $state(Method.Empty);
@@ -35,7 +35,6 @@ export class AppStateClass implements AppState {
   reset() {
     this.currentCollection = new Collection({ name: "temp" });
     this.currentScoop = new Scoop({ name: "temp" });
-    this.currentServer = new Server({ name: "", url: "" });
     this.allScoops = [];
 
     this.method = Method.Empty;

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -16,6 +18,11 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 var App *application.App
+
+var (
+	healthMu     sync.Mutex
+	healthCancel context.CancelFunc
+)
 
 func init() {
 	// Register a custom event whose associated data type is string.
@@ -70,6 +77,7 @@ func main() {
 		URL:              "/",
 	})
 
+	// will cancel running go routine if called multiple times, only one health check runs at a time
 	App.Event.On("initiateHealthCheck", func(e *application.CustomEvent) {
 		server, ok := e.Data.(Server)
 		if !ok {
@@ -78,23 +86,37 @@ func main() {
 			return
 		}
 
-		go func(s Server) {
+		healthMu.Lock()
+
+		// stop health check go routine if one is running
+		if healthCancel != nil {
+			healthCancel()
+		}
+
+		ctx, cancel := context.WithCancel(context.Background())
+		healthCancel = cancel
+
+		healthMu.Unlock()
+
+		go func(ctx context.Context, s Server) {
+			ticker := time.NewTicker(5 * time.Second)
+			defer ticker.Stop()
+
 			for {
 				ok, err := SyncService.CheckServerHealth(server)
-				if err != nil {
+				if err != nil || !ok {
 					App.Event.Emit("serverHealth", "Offline")
-				}
-
-				if ok {
-					App.Event.Emit("serverHealth", "Online")
 				} else {
-					App.Event.Emit("serverHealth", "Offline")
+					App.Event.Emit("serverHealth", "Online")
 				}
 
-				// sleep 5 seconds before checking health again
-				time.Sleep(5 * time.Second)
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+				}
 			}
-		}(server)
+		}(ctx, server)
 	})
 
 	// Run the application. This blocks until the application has been exited.

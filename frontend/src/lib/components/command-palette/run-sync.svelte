@@ -22,7 +22,7 @@
   }
 
   async function sendToServer() {
-    if (app.currentServer.name === "" || app.currentServer.url === "") {
+    if (app.currentServer.key === "" || app.currentServer.url === "") {
       toast.warning("No server has been set");
       return;
     }
@@ -32,7 +32,7 @@
       const ok = await SyncServer.SendToServer(app.currentServer);
 
       if (ok) {
-        toast.success(`App data sucessfully pushed to "${app.currentServer.name}"`);
+        toast.success("App data sucessfully pushed to Scoop Server");
         loading = false;
         cmd = null;
       }
@@ -43,7 +43,7 @@
   }
 
   async function getFromServer() {
-    if (app.currentServer.name === "" || app.currentServer.url === "") {
+    if (app.currentServer.key === "" || app.currentServer.url === "") {
       toast.warning("No server has been set");
       return;
     }
@@ -53,7 +53,7 @@
       const ok = await SyncServer.GetFromServer(app.currentServer);
 
       if (ok) {
-        toast.success(`App data sucessfully received from "${app.currentServer.name}"`);
+        toast.success("App data sucessfully received from Scoop Server");
         app.reset(); // reset app state
         loading = false;
         cmd = null;
@@ -65,7 +65,7 @@
   }
 
   onMount(() => {
-    if (app.currentServer.name === "" && app.currentServer.url === "") {
+    if (app.currentServer.key === "" && app.currentServer.url === "") {
       openSyncServer();
     }
   });
