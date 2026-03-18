@@ -192,6 +192,8 @@ func (b *SyncServer) GetFromServer(s Server) (ok bool, err error) {
 	}
 
 	// save the payload data, starting with Collections
+	// TODO: this does not override collections that were not pushed to sync server
+	// consider the action and determine how I want this to operate
 	for _, c := range payload.Collections {
 		if _, err := b.CreateCollection(c); err != nil {
 			App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -200,11 +202,9 @@ func (b *SyncServer) GetFromServer(s Server) (ok bool, err error) {
 	}
 
 	// save DNSOverrides
-	for _, ov := range payload.DNS {
-		if _, err := b.CreateDNSOverride(ov); err != nil {
-			App.Event.Emit("errMsg", fmt.Sprint(err))
-			return false, err
-		}
+	if _, err := b.OverwriteDNSOverride(payload.DNS); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprintf("OverwriteDNS: %q", err))
+		return false, err
 	}
 
 	return true, nil

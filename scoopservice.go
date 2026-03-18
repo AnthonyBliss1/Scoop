@@ -501,6 +501,27 @@ func (b *ScoopService) CreateDNSOverride(newOv DNSOverride) (bool, error) {
 	return true, nil
 }
 
+// the function below is for receiving ALL OVs from the sync server,
+// do not want to append them to the existing ovs, need to overwrite the entire file
+
+func (b *ScoopService) OverwriteDNSOverride(ov []DNSOverride) (bool, error) {
+	_, ovDir, err := b.OpenDNSOverrides()
+	if err != nil {
+		return false, err
+	}
+
+	j, err := json.MarshalIndent(ov, "", "  ")
+	if err != nil {
+		return false, err
+	}
+
+	if err := os.WriteFile(ovDir, j, 0o644); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (b *ScoopService) GenerateCurlCommand(s Scoop) (string, error) {
 	// add query params to url
 	AddQueryParams(&s)

@@ -72,6 +72,10 @@ export function OpenSyncServer(): $CancellablePromise<$models.Server> {
   });
 }
 
+export function OverwriteDNSOverride(ov: $models.DNSOverride[]): $CancellablePromise<boolean> {
+  return $Call.ByID(3942158868, ov);
+}
+
 export function SaveCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(1747504841, c);
 }

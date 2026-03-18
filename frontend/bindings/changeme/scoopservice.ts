@@ -58,6 +58,10 @@ export function OpenDNSOverrides(): $CancellablePromise<[$models.DNSOverride[], 
   });
 }
 
+export function OverwriteDNSOverride(ov: $models.DNSOverride[]): $CancellablePromise<boolean> {
+  return $Call.ByID(1980305549, ov);
+}
+
 export function SaveCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(806517476, c);
 }
