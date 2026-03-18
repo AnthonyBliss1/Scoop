@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import X from "@lucide/svelte/icons/x";
   import { toast } from "svelte-sonner";
   import { ScoopService, DNSOverride } from "../../../../bindings/changeme";
 
@@ -57,7 +58,9 @@
   });
 </script>
 
-<div class="border-border bg-background flex min-h-[20vh] flex-col gap-5 rounded-sm border p-5">
+<div
+  class={`border-border bg-background flex max-h-[40vh] min-h-[20vh] flex-col gap-5 rounded-sm border ${manageExisting ? `py-5` : `p-5`}`}
+>
   <!-->Tab Buttons<-->
   <div class="mb-5 flex flex-row items-center justify-center gap-5">
     <button
@@ -126,29 +129,31 @@
         }}>Cancel</button
       >
     </div>
-
-    <!-->TODO: Make sure this scrolls and displays all overrides correctly
-        That {#each} is a bit sus, dont remember why i did that<-->
   {:else if manageExisting}
-    <div class="flex h-full flex-row items-center justify-center gap-5">
+    <div class="flex h-full w-full flex-col justify-center gap-5 overflow-y-auto p-5">
       {#each allOv ? allOv[0] : [] as ov}
-        <input
-          class="focus:ring-offset-background bg-background border-border h-8 w-full
-    min-w-0 rounded-sm border px-2 text-green-300 shadow-md
+        <div class="flex flex-row">
+          <input
+            class="focus:ring-offset-background bg-background border-border mr-5 h-8
+    w-full min-w-0 rounded-sm border px-2 text-green-300 shadow-md
     focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
-          bind:value={ov.variable}
-          bind:this={inputEl}
-          readonly
-          placeholder="Enter variable ..."
-        />
-        <input
-          class="focus:ring-offset-background bg-background border-border h-8 w-full
-    min-w-0 rounded-sm border px-2 text-green-300 shadow-md
+            value={ov.variable}
+            bind:this={inputEl}
+            readonly
+            placeholder="Enter variable ..."
+          />
+          <input
+            class="focus:ring-offset-background bg-background border-border mr-2 h-8
+    w-full min-w-0 rounded-sm border px-2 text-green-300 shadow-md
     focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
-          bind:value={ov.ipv4}
-          readonly
-          placeholder="Enter IPV4 ..."
-        />
+            value={ov.ipv4}
+            readonly
+            placeholder="Enter IPV4 ..."
+          />
+          <div class="flex min-w-[2.5vh] items-center justify-center">
+            <X class="flex h-[2.5vh] w-[2.5vw] text-red-800" />
+          </div>
+        </div>
       {/each}
     </div>
   {/if}
