@@ -44,16 +44,18 @@
   });
 </script>
 
-<span class="relative flex h-3 w-3">
-  <span
-    class={status === "Online"
-      ? `absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400/75`
-      : `absolute inline-flex h-full w-full rounded-full bg-red-400/75`}
-  ></span>
-  <span
-    class={status === "Online"
-      ? `relative inline-flex h-3 w-3 rounded-full bg-green-600`
-      : `relative inline-flex h-3 w-3 rounded-full bg-red-900`}
-  ></span>
-</span>
-<span class={status === "Online" ? `text-green-500/90` : `text-red-500/75`}>{status}</span>
+{#if app.currentServer.key !== "" && app.currentServer.url != ""}
+  <span class="relative flex h-3 w-3">
+    <span
+      class={status === "Online"
+        ? `absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400/75`
+        : `absolute inline-flex h-full w-full rounded-full bg-red-400/75`}
+    ></span>
+    <span
+      class={status === "Online"
+        ? `relative inline-flex h-3 w-3 rounded-full bg-green-600`
+        : `relative inline-flex h-3 w-3 rounded-full bg-red-900`}
+    ></span>
+  </span>
+  <span class={status === "Online" ? `text-green-500/90` : `text-red-500/75`}>{status}</span>
+{/if}
