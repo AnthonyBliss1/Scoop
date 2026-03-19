@@ -6,9 +6,9 @@
 		"0000": {
 			"ProductVersion": "0.0.1",
 			"CompanyName": "ARB Apps",
-			"FileDescription": "A 3rd party Square management tool",
+			"FileDescription": "A simple REST API client",
 			"LegalCopyright": "(c) 2025, ARB Apps",
-			"ProductName": "Merchant.io",
+			"ProductName": "Scoop",
 			"Comments": "Some Product Comments"
 		}
 	}

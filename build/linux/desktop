@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
-Name=Merchant.io
+Name=Scoop
 Comment=A 3rd party Square management tool
 # The Exec line includes %u to pass the URL to the application
-Exec=/usr/local/bin/Merchant.io %u
+Exec=/usr/local/bin/Scoop %u
 Terminal=false
 Type=Application
-Icon=Merchant.io
+Icon=Scoop
 Categories=Utility;
-StartupWMClass=Merchant.io
+StartupWMClass=Scoop
 
  
