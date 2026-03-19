@@ -139,7 +139,9 @@
   }
 
   async function generateCurl() {
-    if (appState.currentScoop.name === "temp") {
+    persistFormToRequest(appState.currentScoop);
+
+    if (appState.currentScoop.request.url === "") {
       toast.warning("Please create a valid request first");
       return;
     }

@@ -1,8 +1,17 @@
 <script lang="ts">
+  import { getAppState } from "$lib/store/AppState.svelte";
   import Clipboard from "@lucide/svelte/icons/clipboard";
   import { toast } from "svelte-sonner";
 
-  let { curlCommand = $bindable<string>("") } = $props();
+  const app = getAppState();
+
+  let curlCommand = $state("");
+
+  $effect(() => {
+    if (app.curlCommand !== "") {
+      curlCommand = app.curlCommand;
+    }
+  });
 
   async function copyToClipboard() {
     try {
@@ -18,7 +27,7 @@
 <div class="border-border bg-background flex flex-col gap-5 rounded-sm border p-5">
   <p class="flex h-full items-center justify-center text-lg">Generated cURL Command</p>
 
-  <div class="flex flex-row items-center justify-center gap-5">
+  <div class="flex flex-row items-center gap-5">
     <button
       class="flex h-full w-10 items-center justify-center rounded-sm border-green-300 p-1 hover:border hover:text-green-300 focus:outline-none"
       onclick={copyToClipboard}
