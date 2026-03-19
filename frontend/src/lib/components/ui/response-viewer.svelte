@@ -4,7 +4,7 @@
 
   import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
   import "monaco-editor/esm/vs/language/json/monaco.contribution";
-  import "monaco-editor/esm/vs/language/html/monaco.contribution";
+  import "monaco-editor/esm/vs/basic-languages/html/html.contribution";
 
   export let value = "";
   export let contentType = "";
