@@ -17,10 +17,7 @@
   import HelpKeybindings from "$lib/components/toolbar/help-keybindings.svelte";
   import BodyInput from "$lib/components/ui/body-input.svelte";
   import ServerHealth from "$lib/components/ui/server-health.svelte";
-
-  import Package from "@lucide/svelte/icons/package";
-  import Info from "@lucide/svelte/icons/info";
-  import File from "@lucide/svelte/icons/file-braces";
+  import ToolbarComponent from "$lib/components/toolbar/toolbar-component.svelte";
 
   // encapsulates all the important reactive vars
   // easier to share between components this way
@@ -127,34 +124,6 @@
     }
   }
 
-  async function onSwitchRequest(): Promise<boolean> {
-    try {
-      persistFormToRequest(appState.currentScoop);
-      const ok = await ScoopService.SaveScoop(appState.currentScoop, appState.currentCollection);
-      return ok;
-    } catch (error) {
-      console.log(error);
-      return false;
-    }
-  }
-
-  async function generateCurl() {
-    persistFormToRequest(appState.currentScoop);
-
-    if (appState.currentScoop.request.url === "") {
-      toast.warning("Please create a valid request first");
-      return;
-    }
-
-    try {
-      appState.curlCommand = await ScoopService.GenerateCurlCommand(appState.currentScoop);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      showCurl = true;
-    }
-  }
-
   const openCmdPalette = (event: KeyboardEvent) => {
     if (event.ctrlKey && event.shiftKey && (event.key === "P" || event.code === "KeyP")) {
       showCmdPalette = true;
@@ -193,23 +162,6 @@
     }
   };
 
-  const switchRequest = async (event: KeyboardEvent) => {
-    if (event.ctrlKey && event.key > "0" && event.key <= "9") {
-      const n: number = Number(event.key);
-
-      if (n > appState.allScoops.length) return;
-
-      console.log(`Switch Request Fired! Ctrl + ${n}`);
-
-      const ok = await onSwitchRequest();
-      if (ok) {
-        appState.currentScoop = appState.allScoops[n - 1];
-        appState.response = appState.currentScoop.response ?? "";
-        appState.queryParams = appState.currentScoop.request.query_params;
-      }
-    }
-  };
-
   onMount(() => {
     onRspMsg = Events.On("respMsg", async (event: any) => {
       const s = event.data as Scoop;
@@ -232,7 +184,6 @@
     document.addEventListener("keydown", renameScoop);
     document.addEventListener("keydown", onEscape);
     document.addEventListener("keydown", hideReqParams);
-    document.addEventListener("keydown", switchRequest);
   });
 
   // cleanup events on destroy
@@ -244,7 +195,6 @@
     document.removeEventListener("keydown", renameScoop);
     document.removeEventListener("keydown", onEscape);
     document.removeEventListener("keydown", hideReqParams);
-    document.removeEventListener("keydown", switchRequest);
   });
 </script>
 
@@ -447,63 +397,9 @@
         contentType={appState.response.content_type ?? ""}
       />
     </div>
-    <div class="-mx-10 h-8 items-center rounded-b-sm bg-green-950/30">
-      <div class="flex h-full flex-row items-center gap-5 px-10 text-sm text-green-500/90">
-        <div class="flex flex-row gap-2">
-          <Package
-            class={appState.currentCollection.name === "temp" ? `text-blue-500/90` : ``}
-            size={20}
-          />
-          <p
-            class={appState.currentCollection.name === "temp"
-              ? `text-blue-500/90`
-              : `text-green-400`}
-          >
-            {appState.currentCollection.name}
-          </p>
-        </div>
 
-        {#if appState.currentScoop.name !== "temp"}
-          <!-->TODO: add some logic to handle overflow<-->
-          {#each appState.allScoops as scoop, i}
-            <div class="flex flex-row gap-1">
-              <p
-                class={appState.currentScoop.name === scoop.name
-                  ? `text-blue-500`
-                  : `text-green-400`}
-              >
-                [{i + 1}]
-              </p>
-              <p
-                class={appState.currentScoop.name === scoop.name
-                  ? `text-blue-500`
-                  : `text-green-400`}
-              >
-                {scoop.name}
-              </p>
-            </div>
-          {/each}
-        {/if}
-        <div class="ml-auto flex h-8 items-center justify-center gap-5">
-          <button
-            class="flex w-8 items-center justify-center rounded-sm border-blue-400/90 p-1 hover:border focus:outline-none"
-            onclick={() => {
-              generateCurl();
-            }}
-          >
-            <File class="text-blue-400/90" size={20} />
-          </button>
-          <button
-            class="flex w-8 items-center justify-center rounded-sm border-blue-500/90 p-1 hover:border focus:outline-none"
-            onclick={() => {
-              showHelp = true;
-            }}
-          >
-            <Info class="text-blue-500/90" size={20} />
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-->Bottom Toolbar Section<-->
+    <ToolbarComponent showCurl showHelp />
   </div>
 
   <!-->Handful of Different Overlays<-->
