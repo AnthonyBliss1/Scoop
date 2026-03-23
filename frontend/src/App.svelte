@@ -415,7 +415,7 @@
     </div>
 
     <!-->Bottom Toolbar Section<-->
-    <ToolbarComponent showCurl showHelp />
+    <ToolbarComponent bind:showCurl bind:showHelp />
   </div>
 
   <!-->Handful of Different Overlays<-->
