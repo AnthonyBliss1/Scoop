@@ -5,7 +5,17 @@
 
   const app = getAppState();
 
+  let { showCurl = $bindable<boolean>(false) } = $props<{ showCurl: boolean }>();
+
   let curlCommand = $state("");
+
+  let btnEl: HTMLButtonElement | null = $state(null);
+
+  $effect(() => {
+    if (showCurl) {
+      btnEl?.focus();
+    }
+  });
 
   $effect(() => {
     if (app.curlCommand !== "") {
@@ -30,6 +40,7 @@
   <div class="flex flex-row items-center gap-5">
     <button
       class="flex h-full w-10 items-center justify-center rounded-sm border-green-300 p-1 hover:border hover:text-green-300 focus:outline-none"
+      bind:this={btnEl}
       onclick={copyToClipboard}
     >
       <Clipboard class="h-full" size={28} />

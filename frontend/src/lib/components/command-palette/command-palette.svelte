@@ -72,7 +72,6 @@
         >
           <Send class="text-green-500" />
           <span class="text-green-300">Create New Request</span>
-          <Command.Shortcut class="text-green-500">⌘R</Command.Shortcut>
         </Command.Item>
       </Command.Group>
 
@@ -85,7 +84,6 @@
         >
           <PackagePlus class="text-green-500" />
           <span class="text-green-300">Create Collection</span>
-          <Command.Shortcut class="text-green-500">⌘N</Command.Shortcut>
         </Command.Item>
         <Command.Item
           value="Open Collection"
@@ -95,7 +93,6 @@
         >
           <PackageOpen class="text-green-500" />
           <span class="text-green-300">Open Collection</span>
-          <Command.Shortcut class="text-green-500">⌘O</Command.Shortcut>
         </Command.Item>
       </Command.Group>
 
@@ -108,7 +105,6 @@
         >
           <ServerIcon class="text-green-500" />
           <span class="text-green-300">Configure DNS Override</span>
-          <Command.Shortcut class="text-green-500">⌘D</Command.Shortcut>
         </Command.Item>
         <Command.Item
           value="Set Sync Server"
@@ -118,7 +114,6 @@
         >
           <Database class="text-green-500" />
           <span class="text-green-300">Set Sync Server</span>
-          <Command.Shortcut class="text-green-500">⌘C</Command.Shortcut>
         </Command.Item>
         <Command.Item
           value="Run Sync"
@@ -128,7 +123,6 @@
         >
           <Cloud class="text-green-500" />
           <span class="text-green-300">Run Sync</span>
-          <Command.Shortcut class="text-green-500">⌘S</Command.Shortcut>
         </Command.Item>
       </Command.Group>
     </Command.List>

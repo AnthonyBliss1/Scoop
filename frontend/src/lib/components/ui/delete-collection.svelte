@@ -11,6 +11,14 @@
 
   let deleting: boolean = $state(false);
 
+  let btnEl: HTMLButtonElement | null = $state(null);
+
+  $effect(() => {
+    if (showDeleteCollection) {
+      btnEl?.focus();
+    }
+  });
+
   async function deleteCollection() {
     const target = app.currentCollection;
 
@@ -30,7 +38,7 @@
         showDeleteCollection = false;
         app.reset();
 
-        toast.success(`Deleted ${target.name}`);
+        toast.success(`Deleted '${target.name}' Collection`);
       }
     } catch (error) {
       console.error(error);
@@ -61,6 +69,7 @@
       text-sm hover:bg-green-400 hover:text-black focus:ring-2
       focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
       disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
+      bind:this={btnEl}
       disabled={deleting}
       onclick={() => {
         showDeleteCollection = false;

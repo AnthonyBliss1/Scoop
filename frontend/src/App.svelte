@@ -159,7 +159,10 @@
   };
 
   const onEscape = (event: KeyboardEvent) => {
-    if (event.key === "Escape" && (showCmdPalette || showRenameScoop || showHelp)) {
+    if (
+      event.key === "Escape" &&
+      (showCmdPalette || showRenameScoop || showDeleteCollection || showHelp || showCurl)
+    ) {
       switch (true) {
         case showCmdPalette:
           showCmdPalette = false;
@@ -172,6 +175,9 @@
           break;
         case showHelp:
           showHelp = false;
+          break;
+        case showCurl:
+          showCurl = false;
           break;
       }
     }
@@ -472,7 +478,7 @@
       {:else if showCurl}
         <!--Generated CURL Command-->
         <div class="relative z-101 w-full max-w-xl shadow-lg">
-          <GeneratedCurl />
+          <GeneratedCurl bind:showCurl />
         </div>
       {/if}
     </div>

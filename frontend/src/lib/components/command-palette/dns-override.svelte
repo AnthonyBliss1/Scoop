@@ -68,7 +68,7 @@
       const ok = await ScoopService.OverwriteDNSOverride(newOV);
 
       if (ok) {
-        toast.success(`Deleted '${target.variable}'`);
+        toast.success(`Deleted '${target.variable}' Variable`);
 
         // probably dont need to await this
         loadDNSOverrides();
