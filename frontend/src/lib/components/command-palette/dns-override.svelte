@@ -59,6 +59,8 @@
       return;
     }
 
+    deleting = true;
+
     // assumption is there are guardrails preventing dupe variables
     const newOV = currentOV.filter((ov) => ov.variable !== target.variable);
 
@@ -76,6 +78,7 @@
       }
     } catch (error) {
       console.error(error);
+      deleting = false;
     }
   }
 

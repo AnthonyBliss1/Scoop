@@ -20,6 +20,11 @@
         <Command.Shortcut class="text-green-500">Ctrl + R</Command.Shortcut>
       </Command.Item>
 
+      <Command.Item value="Delete Current Collection" class="aria-selected:bg-background">
+        <span class="text-green-400">Delete Current Collection</span>
+        <Command.Shortcut class="text-green-500">Ctrl + D</Command.Shortcut>
+      </Command.Item>
+
       <Command.Item value="Expand Response Body" class="aria-selected:bg-background">
         <span class="text-green-400">Expand Response Body</span>
         <Command.Shortcut class="text-green-500">Ctrl + E</Command.Shortcut>

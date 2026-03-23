@@ -18,6 +18,7 @@
   import BodyInput from "$lib/components/ui/body-input.svelte";
   import ServerHealth from "$lib/components/ui/server-health.svelte";
   import ToolbarComponent from "$lib/components/toolbar/toolbar-component.svelte";
+  import DeleteCollection from "$lib/components/ui/delete-collection.svelte";
 
   // encapsulates all the important reactive vars
   // easier to share between components this way
@@ -29,6 +30,7 @@
 
   let showCmdPalette: boolean = $state(false);
   let showRenameScoop: boolean = $state(false);
+  let showDeleteCollection: boolean = $state(false);
   let showHelp: boolean = $state(false);
   let showCurl: boolean = $state(false);
   let reqParamsHidden: boolean = $state(false);
@@ -146,6 +148,16 @@
     }
   };
 
+  const deleteCollection = (event: KeyboardEvent) => {
+    if (event.ctrlKey && (event.key === "D" || event.code === "KeyD")) {
+      if (appState.currentCollection.name === "temp") {
+        toast.warning("Cannot delete 'temp' collection");
+      } else {
+        showDeleteCollection = !showDeleteCollection;
+      }
+    }
+  };
+
   const onEscape = (event: KeyboardEvent) => {
     if (event.key === "Escape" && (showCmdPalette || showRenameScoop || showHelp)) {
       switch (true) {
@@ -154,6 +166,9 @@
           break;
         case showRenameScoop:
           showRenameScoop = false;
+          break;
+        case showDeleteCollection:
+          showDeleteCollection = false;
           break;
         case showHelp:
           showHelp = false;
@@ -181,6 +196,7 @@
 
     document.addEventListener("keydown", openCmdPalette);
     document.addEventListener("keydown", renameScoop);
+    document.addEventListener("keydown", deleteCollection);
     document.addEventListener("keydown", onEscape);
     document.addEventListener("keydown", hideReqParams);
   });
@@ -192,6 +208,7 @@
 
     document.removeEventListener("keydown", openCmdPalette);
     document.removeEventListener("keydown", renameScoop);
+    document.removeEventListener("keydown", deleteCollection);
     document.removeEventListener("keydown", onEscape);
     document.removeEventListener("keydown", hideReqParams);
   });
@@ -402,7 +419,7 @@
   </div>
 
   <!-->Handful of Different Overlays<-->
-  {#if showCmdPalette || showRenameScoop || showHelp || showCurl}
+  {#if showCmdPalette || showRenameScoop || showDeleteCollection || showHelp || showCurl}
     <div
       class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
       aria-modal="true"
@@ -420,6 +437,9 @@
             case showRenameScoop:
               showRenameScoop = false;
               break;
+            case showDeleteCollection:
+              showDeleteCollection = false;
+              break;
             case showHelp:
               showHelp = false;
               break;
@@ -431,22 +451,27 @@
       ></button>
       {#if showCmdPalette}
         <!--CmdPalette-->
-        <div class=" relative z-101 w-full max-w-xl shadow-lg">
+        <div class="relative z-101 w-full max-w-xl shadow-lg">
           <CmdPalette />
         </div>
       {:else if showRenameScoop}
         <!--Rename Scoop-->
-        <div class=" relative z-101 w-full max-w-xl shadow-lg">
+        <div class="relative z-101 w-full max-w-xl shadow-lg">
           <RenameScoop bind:showRenameScoop />
+        </div>
+      {:else if showDeleteCollection}
+        <!-->Confirm Delete Collection<-->
+        <div class="relative z-101 w-full max-w-xl shadow-lg">
+          <DeleteCollection bind:showDeleteCollection />
         </div>
       {:else if showHelp}
         <!--Keybindings Help Component-->
-        <div class=" relative z-101 w-full max-w-xl shadow-lg">
+        <div class="relative z-101 w-full max-w-xl shadow-lg">
           <HelpKeybindings />
         </div>
       {:else if showCurl}
         <!--Generated CURL Command-->
-        <div class=" relative z-101 w-full max-w-xl shadow-lg">
+        <div class="relative z-101 w-full max-w-xl shadow-lg">
           <GeneratedCurl />
         </div>
       {/if}

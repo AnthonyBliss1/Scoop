@@ -29,6 +29,10 @@ export function CreateScoop(c: $models.Collection, s: $models.Scoop): $Cancellab
   return $Call.ByID(2777861803, c, s);
 }
 
+export function DeleteCollection(c: $models.Collection): $CancellablePromise<boolean> {
+  return $Call.ByID(1606876506, c);
+}
+
 export function GenerateCurlCommand(s: $models.Scoop): $CancellablePromise<string> {
   return $Call.ByID(1905964093, s);
 }
@@ -60,6 +64,10 @@ export function OpenDNSOverrides(): $CancellablePromise<[$models.DNSOverride[], 
 
 export function OverwriteDNSOverride(ov: $models.DNSOverride[]): $CancellablePromise<boolean> {
   return $Call.ByID(1980305549, ov);
+}
+
+export function RemoveCollectionDir(): $CancellablePromise<void> {
+  return $Call.ByID(2810039768);
 }
 
 export function SaveCollection(c: $models.Collection): $CancellablePromise<boolean> {

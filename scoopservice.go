@@ -380,6 +380,32 @@ func (b *ScoopService) SaveCollection(c Collection) (bool, error) {
 	return true, nil
 }
 
+func (b *ScoopService) DeleteCollection(c Collection) (bool, error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop", "Collections")
+
+	// ensure /Scoop/Collections/ is created in UserConfigDir
+	if err := os.MkdirAll(scoopDir, 0o755); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	path := filepath.Join(scoopDir, colFile)
+
+	if err := os.Remove(path); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (b *ScoopService) SaveScoop(s Scoop, c Collection) (bool, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
@@ -560,4 +586,15 @@ func (b *ScoopService) GenerateCurlCommand(s Scoop) (string, error) {
 	}
 
 	return command.String(), nil
+}
+
+func (b *ScoopService) RemoveCollectionDir() error {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		return err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop", "Collections")
+
+	return os.RemoveAll(scoopDir)
 }
