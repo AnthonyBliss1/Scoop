@@ -12,10 +12,16 @@
 
   let newVariable: string = $state("");
   let variableIPV4: string = $state("");
+
+  // weird type because the binding function OpenDNSOverrides returns 3 variables (DNSOverride, string, and error)
   let allOv: [DNSOverride[], string] | null = $state(null);
 
   let createNew: boolean = $state(true);
   let manageExisting: boolean = $state(false);
+
+  let showDeleteWarning: boolean = $state(false);
+  let ovToDelete: DNSOverride | null = $state(null);
+  let deleting: boolean = $state(false);
 
   async function createDNSOverride() {
     if (newVariable === "" || variableIPV4 === "") {
@@ -39,6 +45,40 @@
     }
   }
 
+  async function deleteOV() {
+    const target = ovToDelete;
+    const currentOV = allOv ? allOv[0] : [];
+
+    if (!target) {
+      toast.error("Override null, cannot delete");
+      return;
+    }
+
+    if (!currentOV) {
+      toast.error("Overrides missing, cannot delete");
+      return;
+    }
+
+    // assumption is there are guardrails preventing dupe variables
+    const newOV = currentOV.filter((ov) => ov.variable !== target.variable);
+
+    try {
+      const ok = await ScoopService.OverwriteDNSOverride(newOV);
+
+      if (ok) {
+        toast.success(`Deleted '${target.variable}'`);
+
+        // probably dont need to await this
+        loadDNSOverrides();
+
+        deleting = false;
+        showDeleteWarning = false;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async function loadDNSOverrides() {
     try {
       allOv = await ScoopService.OpenDNSOverrides();
@@ -59,7 +99,7 @@
 </script>
 
 <div
-  class={`border-border bg-background flex max-h-[40vh] min-h-[20vh] flex-col gap-5 rounded-sm border ${manageExisting ? `py-5` : `p-5`}`}
+  class={`border-border bg-background relative flex max-h-[40vh] min-h-[20vh] flex-col gap-5 rounded-sm border ${manageExisting ? `py-5` : `p-5`}`}
 >
   <!-->Tab Buttons<-->
   <div class="mb-5 flex flex-row items-center justify-center gap-5">
@@ -88,21 +128,60 @@
     </button>
   </div>
 
+  <!-->Deletion Warning Overlay<-->
+  {#if showDeleteWarning && ovToDelete !== null}
+    <div
+      class="bg-background absolute z-150 flex h-full w-full -translate-y-5 items-center justify-center rounded-sm"
+    >
+      <div class="flex flex-col gap-15">
+        <p>Are you sure you want to delete '{ovToDelete?.variable}'?</p>
+
+        <div class="flex flex-row items-center justify-center gap-5">
+          <button
+            class="bg-accent focus:ring-offset-background inline-flex h-9 items-center justify-center rounded-sm
+            border border-red-500 px-3 text-sm
+            text-red-500 hover:bg-red-400 hover:text-black focus:ring-2
+            focus:ring-red-400/20 focus:ring-offset-2 focus:outline-none
+            disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-red-500"
+            disabled={deleting}
+            onclick={deleteOV}
+          >
+            Delete
+          </button>
+          <button
+            class="border-border bg-accent text-foreground focus:ring-offset-background inline-flex h-9 items-center
+            justify-center rounded-sm border px-3
+            text-sm hover:bg-green-400 hover:text-black focus:ring-2
+            focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
+            disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
+            disabled={deleting}
+            onclick={() => {
+              showDeleteWarning = false;
+              ovToDelete = null;
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
   <!-->Create Tab<-->
   {#if createNew}
     <div class="flex h-full flex-row items-center justify-center gap-5">
       <input
         class="focus:ring-offset-background bg-background border-border h-8 w-full
-    min-w-0 rounded-sm border px-2 text-green-300 shadow-md
-    focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
+        min-w-0 rounded-sm border px-2 text-green-300 shadow-md
+        focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
         bind:value={newVariable}
         bind:this={inputEl}
         placeholder="Enter variable ..."
       />
       <input
         class="focus:ring-offset-background bg-background border-border h-8 w-full
-    min-w-0 rounded-sm border px-2 text-green-300 shadow-md
-    focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
+        min-w-0 rounded-sm border px-2 text-green-300 shadow-md
+        focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
         bind:value={variableIPV4}
         placeholder="Enter IPV4 ..."
       />
@@ -135,8 +214,8 @@
         <div class="flex flex-row">
           <input
             class="focus:ring-offset-background bg-background border-border mr-5 h-8
-    w-full min-w-0 rounded-sm border px-2 text-green-300 shadow-md
-    focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
+            w-full min-w-0 rounded-sm border px-2 text-green-300 shadow-md
+            focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
             value={ov.variable}
             bind:this={inputEl}
             readonly
@@ -144,14 +223,22 @@
           />
           <input
             class="focus:ring-offset-background bg-background border-border mr-2 h-8
-    w-full min-w-0 rounded-sm border px-2 text-green-300 shadow-md
-    focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
+            w-full min-w-0 rounded-sm border px-2 text-green-300 shadow-md
+            focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none"
             value={ov.ipv4}
             readonly
             placeholder="Enter IPV4 ..."
           />
           <div class="flex min-w-[2.5vh] items-center justify-center">
-            <X class="flex h-[2.5vh] w-[2.5vw] text-red-800" />
+            <button
+              class="flex h-[2.5vh] w-[2.5vw] items-center justify-center rounded-sm border-red-800/90 hover:border focus:outline-none"
+              onclick={() => {
+                showDeleteWarning = true;
+                ovToDelete = ov;
+              }}
+            >
+              <X class="text-red-800" />
+            </button>
           </div>
         </div>
       {/each}

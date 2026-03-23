@@ -166,7 +166,6 @@
     onRspMsg = Events.On("respMsg", async (event: any) => {
       const s = event.data as Scoop;
 
-      // want to use reactive plain objects in UI since Svelete reactivity doesnt like classes
       appState.response = s.response;
       appState.url = s.request.url;
       persistFormToRequest(appState.currentScoop);
