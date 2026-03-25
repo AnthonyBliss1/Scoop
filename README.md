@@ -41,10 +41,11 @@ Keybindings can also be view by clicking the 'I' (Info) button in the bottom rig
 
 | Action                | Binding           |
 |---------------------- | ----------------- |
-| Open Command Palette  | Ctrl + Shift + P  |
+| Open Command Palette  | Shift + Ctrl + P  |
 | Go to Scoop           | Ctrl + Num        |
 | Rename Scoop          | Ctrl + R          |
-| Delete Collection     | Ctrl + D          |
+| Delete Collection     | Shift + Ctrl + D  |
+| Delete Scoop          | Ctrl + D          |
 | Expand Response Body  | Ctrl + E          |
 
 

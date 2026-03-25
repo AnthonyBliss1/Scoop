@@ -18,7 +18,7 @@
   import BodyInput from "$lib/components/ui/body-input.svelte";
   import ServerHealth from "$lib/components/ui/server-health.svelte";
   import ToolbarComponent from "$lib/components/toolbar/toolbar-component.svelte";
-  import DeleteCollection from "$lib/components/ui/delete-collection.svelte";
+  import DeleteItem from "$lib/components/ui/delete-coll-scoop.svelte";
 
   // encapsulates all the important reactive vars
   // easier to share between components this way
@@ -31,6 +31,7 @@
   let showCmdPalette: boolean = $state(false);
   let showRenameScoop: boolean = $state(false);
   let showDeleteCollection: boolean = $state(false);
+  let showDeleteScoop: boolean = $state(false);
   let showHelp: boolean = $state(false);
   let showCurl: boolean = $state(false);
   let reqParamsHidden: boolean = $state(false);
@@ -149,7 +150,7 @@
   };
 
   const deleteCollection = (event: KeyboardEvent) => {
-    if (event.ctrlKey && (event.key === "D" || event.code === "KeyD")) {
+    if (event.ctrlKey && event.shiftKey && (event.key === "D" || event.code === "KeyD")) {
       if (appState.currentCollection.name === "temp") {
         toast.warning("Cannot delete 'temp' collection");
       } else {
@@ -158,10 +159,25 @@
     }
   };
 
+  const deleteScoop = (event: KeyboardEvent) => {
+    if (event.ctrlKey && !event.shiftKey && (event.key === "D" || event.code === "KeyD")) {
+      if (appState.currentCollection.name === "temp") {
+        toast.warning("Cannot delete 'temp' collection");
+      } else {
+        showDeleteScoop = !showDeleteScoop;
+      }
+    }
+  };
+
   const onEscape = (event: KeyboardEvent) => {
     if (
       event.key === "Escape" &&
-      (showCmdPalette || showRenameScoop || showDeleteCollection || showHelp || showCurl)
+      (showCmdPalette ||
+        showRenameScoop ||
+        showDeleteCollection ||
+        showDeleteScoop ||
+        showHelp ||
+        showCurl)
     ) {
       switch (true) {
         case showCmdPalette:
@@ -172,6 +188,9 @@
           break;
         case showDeleteCollection:
           showDeleteCollection = false;
+          break;
+        case showDeleteScoop:
+          showDeleteScoop = false;
           break;
         case showHelp:
           showHelp = false;
@@ -203,6 +222,7 @@
     document.addEventListener("keydown", openCmdPalette);
     document.addEventListener("keydown", renameScoop);
     document.addEventListener("keydown", deleteCollection);
+    document.addEventListener("keydown", deleteScoop);
     document.addEventListener("keydown", onEscape);
     document.addEventListener("keydown", hideReqParams);
   });
@@ -215,6 +235,7 @@
     document.removeEventListener("keydown", openCmdPalette);
     document.removeEventListener("keydown", renameScoop);
     document.removeEventListener("keydown", deleteCollection);
+    document.removeEventListener("keydown", deleteScoop);
     document.removeEventListener("keydown", onEscape);
     document.removeEventListener("keydown", hideReqParams);
   });
@@ -425,7 +446,7 @@
   </div>
 
   <!-->Handful of Different Overlays<-->
-  {#if showCmdPalette || showRenameScoop || showDeleteCollection || showHelp || showCurl}
+  {#if showCmdPalette || showRenameScoop || showDeleteCollection || showDeleteScoop || showHelp || showCurl}
     <div
       class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
       aria-modal="true"
@@ -445,6 +466,9 @@
               break;
             case showDeleteCollection:
               showDeleteCollection = false;
+              break;
+            case showDeleteScoop:
+              showDeleteScoop = false;
               break;
             case showHelp:
               showHelp = false;
@@ -468,7 +492,12 @@
       {:else if showDeleteCollection}
         <!-->Confirm Delete Collection<-->
         <div class="relative z-101 w-full max-w-xl shadow-lg">
-          <DeleteCollection bind:showDeleteCollection />
+          <DeleteItem bind:showDelete={showDeleteCollection} mode={"Collection"} />
+        </div>
+      {:else if showDeleteScoop}
+        <!-->Confirm Delete Scoop<-->
+        <div class="relative z-101 w-full max-w-xl shadow-lg">
+          <DeleteItem bind:showDelete={showDeleteScoop} mode={"Scoop"} />
         </div>
       {:else if showHelp}
         <!--Keybindings Help Component-->

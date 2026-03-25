@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -301,6 +302,43 @@ func (b *ScoopService) CreateScoop(c Collection, s Scoop) (bool, error) {
 	return true, nil
 }
 
+func (b *ScoopService) DeleteScoop(c Collection, s Scoop) (bool, error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop", "Collections")
+
+	// ensure /Scoop/Collections/ is created in UserConfigDir
+	if err := os.MkdirAll(scoopDir, 0o755); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	// remove scoop from current collection
+	c.Scoops = slices.DeleteFunc(c.Scoops, func(e Scoop) bool {
+		return e.Name == s.Name
+	})
+
+	j, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	path := filepath.Join(scoopDir, colFile)
+
+	if err := os.WriteFile(path, j, 0o644); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (b *ScoopService) OpenCollections() ([]Collection, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
@@ -398,6 +436,7 @@ func (b *ScoopService) DeleteCollection(c Collection) (bool, error) {
 	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
 	path := filepath.Join(scoopDir, colFile)
 
+	// delete the entire file since each file defines a collection
 	if err := os.Remove(path); err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err

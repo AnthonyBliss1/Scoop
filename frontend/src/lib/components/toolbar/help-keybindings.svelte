@@ -22,6 +22,11 @@
 
       <Command.Item value="Delete Current Collection" class="aria-selected:bg-background">
         <span class="text-green-400">Delete Current Collection</span>
+        <Command.Shortcut class="text-green-500">Shift + Ctrl + D</Command.Shortcut>
+      </Command.Item>
+
+      <Command.Item value="Delete Current Scoop" class="aria-selected:bg-background">
+        <span class="text-green-400">Delete Current Scoop</span>
         <Command.Shortcut class="text-green-500">Ctrl + D</Command.Shortcut>
       </Command.Item>
 

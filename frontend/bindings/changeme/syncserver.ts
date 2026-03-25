@@ -37,6 +37,10 @@ export function DeleteCollection(c: $models.Collection): $CancellablePromise<boo
   return $Call.ByID(1670052403, c);
 }
 
+export function DeleteScoop(c: $models.Collection, s: $models.Scoop): $CancellablePromise<boolean> {
+  return $Call.ByID(1000232285, c, s);
+}
+
 export function GenerateCurlCommand(s: $models.Scoop): $CancellablePromise<string> {
   return $Call.ByID(2614130154, s);
 }
