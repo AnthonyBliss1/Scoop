@@ -21,6 +21,7 @@
     }
 
     tempCollection.name = newCollection;
+    tempCollection.id = crypto.randomUUID();
 
     try {
       const ok = await ScoopService.CreateCollection(tempCollection);

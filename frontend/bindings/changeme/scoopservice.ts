@@ -70,10 +70,6 @@ export function OverwriteDNSOverride(ov: $models.DNSOverride[]): $CancellablePro
   return $Call.ByID(1980305549, ov);
 }
 
-export function RemoveCollectionDir(): $CancellablePromise<void> {
-  return $Call.ByID(2810039768);
-}
-
 export function SaveCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(806517476, c);
 }

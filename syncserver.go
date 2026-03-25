@@ -193,7 +193,7 @@ func (b *SyncServer) GetFromServer(s Server) (ok bool, err error) {
 
 	// save the payload data, starting with Collections
 	// dont really like this solution but i will nuke the dir and write the collections to an emtpy dir
-	if err := b.RemoveCollectionDir(); err != nil {
+	if err := RemoveCollectionDir(); err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
 	}

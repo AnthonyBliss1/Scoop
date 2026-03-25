@@ -53,12 +53,14 @@ type Response struct {
 }
 
 type Scoop struct {
+	ID       string   `json:"id"`
 	Name     string   `json:"name"`
 	Request  Request  `json:"request"`
 	Response Response `json:"response"`
 }
 
 type Collection struct {
+	ID     string  `json:"id"`
 	Name   string  `json:"name"`
 	Scoops []Scoop `json:"scoops"`
 }
@@ -131,6 +133,17 @@ func CreateRequest(s Scoop, url string) (r *http.Request, err error) {
 	}
 
 	return r, nil
+}
+
+func RemoveCollectionDir() error {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		return err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop", "Collections")
+
+	return os.RemoveAll(scoopDir)
 }
 
 func (b *ScoopService) SubmitRequest(s Scoop) {
@@ -254,7 +267,7 @@ func (b *ScoopService) CreateCollection(c Collection) (bool, error) {
 		return false, err
 	}
 
-	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.ID))
 	path := filepath.Join(scoopDir, colFile)
 
 	if err := os.WriteFile(path, j, 0o644); err != nil {
@@ -291,7 +304,7 @@ func (b *ScoopService) CreateScoop(c Collection, s Scoop) (bool, error) {
 		return false, err
 	}
 
-	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.ID))
 	path := filepath.Join(scoopDir, colFile)
 
 	if err := os.WriteFile(path, j, 0o644); err != nil {
@@ -319,7 +332,7 @@ func (b *ScoopService) DeleteScoop(c Collection, s Scoop) (bool, error) {
 
 	// remove scoop from current collection
 	c.Scoops = slices.DeleteFunc(c.Scoops, func(e Scoop) bool {
-		return e.Name == s.Name
+		return e.ID == s.ID
 	})
 
 	j, err := json.MarshalIndent(c, "", "  ")
@@ -328,7 +341,7 @@ func (b *ScoopService) DeleteScoop(c Collection, s Scoop) (bool, error) {
 		return false, err
 	}
 
-	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.ID))
 	path := filepath.Join(scoopDir, colFile)
 
 	if err := os.WriteFile(path, j, 0o644); err != nil {
@@ -407,7 +420,7 @@ func (b *ScoopService) SaveCollection(c Collection) (bool, error) {
 		return false, err
 	}
 
-	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.ID))
 	path := filepath.Join(scoopDir, colFile)
 
 	if err := os.WriteFile(path, j, 0o644); err != nil {
@@ -433,7 +446,7 @@ func (b *ScoopService) DeleteCollection(c Collection) (bool, error) {
 		return false, err
 	}
 
-	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.ID))
 	path := filepath.Join(scoopDir, colFile)
 
 	// delete the entire file since each file defines a collection
@@ -461,7 +474,7 @@ func (b *ScoopService) SaveScoop(s Scoop, c Collection) (bool, error) {
 	}
 
 	for _, scoop := range c.Scoops {
-		if scoop.Name == s.Name {
+		if scoop.ID == s.ID {
 			scoop = s
 		}
 	}
@@ -472,7 +485,7 @@ func (b *ScoopService) SaveScoop(s Scoop, c Collection) (bool, error) {
 		return false, err
 	}
 
-	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.Name))
+	colFile := fmt.Sprintf("%s.json", strings.TrimSpace(c.ID))
 	path := filepath.Join(scoopDir, colFile)
 
 	if err := os.WriteFile(path, j, 0o644); err != nil {
@@ -625,15 +638,4 @@ func (b *ScoopService) GenerateCurlCommand(s Scoop) (string, error) {
 	}
 
 	return command.String(), nil
-}
-
-func (b *ScoopService) RemoveCollectionDir() error {
-	base, err := os.UserConfigDir()
-	if err != nil {
-		return err
-	}
-
-	scoopDir := filepath.Join(base, "Scoop", "Collections")
-
-	return os.RemoveAll(scoopDir)
 }

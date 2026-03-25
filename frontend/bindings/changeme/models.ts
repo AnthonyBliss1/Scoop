@@ -6,11 +6,15 @@
 import { Create as $Create } from "@wailsio/runtime";
 
 export class Collection {
+  "id": string;
   "name": string;
   "scoops": Scoop[];
 
   /** Creates a new Collection instance. */
   constructor($$source: Partial<Collection> = {}) {
+    if (!("id" in $$source)) {
+      this["id"] = "";
+    }
     if (!("name" in $$source)) {
       this["name"] = "";
     }
@@ -25,10 +29,10 @@ export class Collection {
    * Creates a new Collection instance from a string or object.
    */
   static createFrom($$source: any = {}): Collection {
-    const $$createField1_0 = $$createType1;
+    const $$createField2_0 = $$createType1;
     let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
     if ("scoops" in $$parsedSource) {
-      $$parsedSource["scoops"] = $$createField1_0($$parsedSource["scoops"]);
+      $$parsedSource["scoops"] = $$createField2_0($$parsedSource["scoops"]);
     }
     return new Collection($$parsedSource as Partial<Collection>);
   }
@@ -193,12 +197,16 @@ export class Response {
 }
 
 export class Scoop {
+  "id": string;
   "name": string;
   "request": Request;
   "response": Response;
 
   /** Creates a new Scoop instance. */
   constructor($$source: Partial<Scoop> = {}) {
+    if (!("id" in $$source)) {
+      this["id"] = "";
+    }
     if (!("name" in $$source)) {
       this["name"] = "";
     }
@@ -216,14 +224,14 @@ export class Scoop {
    * Creates a new Scoop instance from a string or object.
    */
   static createFrom($$source: any = {}): Scoop {
-    const $$createField1_0 = $$createType4;
-    const $$createField2_0 = $$createType5;
+    const $$createField2_0 = $$createType4;
+    const $$createField3_0 = $$createType5;
     let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
     if ("request" in $$parsedSource) {
-      $$parsedSource["request"] = $$createField1_0($$parsedSource["request"]);
+      $$parsedSource["request"] = $$createField2_0($$parsedSource["request"]);
     }
     if ("response" in $$parsedSource) {
-      $$parsedSource["response"] = $$createField2_0($$parsedSource["response"]);
+      $$parsedSource["response"] = $$createField3_0($$parsedSource["response"]);
     }
     return new Scoop($$parsedSource as Partial<Scoop>);
   }

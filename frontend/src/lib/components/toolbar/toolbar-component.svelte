@@ -55,7 +55,7 @@
     s.request.body = appState.body;
   }
 
-  async function onSwitchRequest(): Promise<boolean> {
+  async function onSwitchScoop(): Promise<boolean> {
     try {
       persistFormToRequest(appState.currentScoop);
       return await ScoopService.SaveScoop(appState.currentScoop, appState.currentCollection);
@@ -88,7 +88,7 @@
 
       if (localIndex >= visibleScoops.length) return;
 
-      const ok = await onSwitchRequest();
+      const ok = await onSwitchScoop();
       if (!ok) return;
 
       const nextScoop = visibleScoops[localIndex];
