@@ -12,13 +12,13 @@
   import DotSpinner from "$lib/components/ui/dot-spinner.svelte";
   import ResponseViewer from "$lib/components/ui/response-viewer.svelte";
   import CmdPalette from "$lib/components/command-palette/command-palette.svelte";
-  import RenameScoop from "$lib/components/ui/rename-scoop.svelte";
+  import RenameItem from "$lib/components/ui/rename-item.svelte";
   import GeneratedCurl from "$lib/components/toolbar/generated-curl.svelte";
   import HelpKeybindings from "$lib/components/toolbar/help-keybindings.svelte";
   import BodyInput from "$lib/components/ui/body-input.svelte";
   import ServerHealth from "$lib/components/ui/server-health.svelte";
   import ToolbarComponent from "$lib/components/toolbar/toolbar-component.svelte";
-  import DeleteItem from "$lib/components/ui/delete-coll-scoop.svelte";
+  import DeleteItem from "$lib/components/ui/delete-item.svelte";
 
   // encapsulates all the important reactive vars
   // easier to share between components this way
@@ -30,6 +30,7 @@
 
   let showCmdPalette: boolean = $state(false);
   let showRenameScoop: boolean = $state(false);
+  let showRenameCollection: boolean = $state(false);
   let showDeleteCollection: boolean = $state(false);
   let showDeleteScoop: boolean = $state(false);
   let showHelp: boolean = $state(false);
@@ -140,11 +141,21 @@
   };
 
   const renameScoop = (event: KeyboardEvent) => {
-    if (event.ctrlKey && (event.key === "R" || event.code === "KeyR")) {
+    if (event.ctrlKey && !event.shiftKey && (event.key === "R" || event.code === "KeyR")) {
       if (appState.currentScoop.name === "temp") {
         toast.warning("Cannot rename a temporary Scoop");
       } else {
         showRenameScoop = !showRenameScoop;
+      }
+    }
+  };
+
+  const renameCollection = (event: KeyboardEvent) => {
+    if (event.ctrlKey && event.shiftKey && (event.key === "R" || event.code === "KeyR")) {
+      if (appState.currentCollection.name === "temp") {
+        toast.warning("Cannot rename a temporary Collection");
+      } else {
+        showRenameCollection = !showRenameCollection;
       }
     }
   };
@@ -174,6 +185,7 @@
       event.key === "Escape" &&
       (showCmdPalette ||
         showRenameScoop ||
+        showRenameCollection ||
         showDeleteCollection ||
         showDeleteScoop ||
         showHelp ||
@@ -185,6 +197,9 @@
           break;
         case showRenameScoop:
           showRenameScoop = false;
+          break;
+        case showRenameCollection:
+          showRenameCollection = false;
           break;
         case showDeleteCollection:
           showDeleteCollection = false;
@@ -221,6 +236,7 @@
 
     document.addEventListener("keydown", openCmdPalette);
     document.addEventListener("keydown", renameScoop);
+    document.addEventListener("keydown", renameCollection);
     document.addEventListener("keydown", deleteCollection);
     document.addEventListener("keydown", deleteScoop);
     document.addEventListener("keydown", onEscape);
@@ -234,6 +250,7 @@
 
     document.removeEventListener("keydown", openCmdPalette);
     document.removeEventListener("keydown", renameScoop);
+    document.removeEventListener("keydown", renameCollection);
     document.removeEventListener("keydown", deleteCollection);
     document.removeEventListener("keydown", deleteScoop);
     document.removeEventListener("keydown", onEscape);
@@ -446,7 +463,7 @@
   </div>
 
   <!-->Handful of Different Overlays<-->
-  {#if showCmdPalette || showRenameScoop || showDeleteCollection || showDeleteScoop || showHelp || showCurl}
+  {#if showCmdPalette || showRenameScoop || showRenameCollection || showDeleteCollection || showDeleteScoop || showHelp || showCurl}
     <div
       class="fixed inset-0 z-100 flex min-h-screen min-w-screen items-center justify-center p-3 sm:p-8"
       aria-modal="true"
@@ -463,6 +480,9 @@
               break;
             case showRenameScoop:
               showRenameScoop = false;
+              break;
+            case showRenameCollection:
+              showRenameCollection = false;
               break;
             case showDeleteCollection:
               showDeleteCollection = false;
@@ -487,7 +507,12 @@
       {:else if showRenameScoop}
         <!--Rename Scoop-->
         <div class="relative z-101 w-full max-w-xl shadow-lg">
-          <RenameScoop bind:showRenameScoop />
+          <RenameItem bind:showRename={showRenameScoop} mode={"Scoop"} />
+        </div>
+      {:else if showRenameCollection}
+        <!--Rename Collection-->
+        <div class="relative z-101 w-full max-w-xl shadow-lg">
+          <RenameItem bind:showRename={showRenameCollection} mode={"Collection"} />
         </div>
       {:else if showDeleteCollection}
         <!-->Confirm Delete Collection<-->

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -238,15 +237,7 @@ func (b *ScoopService) SubmitRequest(s Scoop) {
 	}()
 }
 
-// TODO: prevent duplicate Collection names
-
 func (b *ScoopService) CreateCollection(c Collection) (bool, error) {
-	if strings.ContainsAny(c.Name, `/\`) {
-		err := errors.New("collection name cannot contain slashes")
-		App.Event.Emit("errMsg", fmt.Sprint(err))
-		return false, err
-	}
-
 	base, err := os.UserConfigDir()
 	if err != nil {
 		App.Event.Emit("errMsg", fmt.Sprint(err))
@@ -277,8 +268,6 @@ func (b *ScoopService) CreateCollection(c Collection) (bool, error) {
 
 	return true, nil
 }
-
-// TODO: prevent duplicate Scoop names
 
 func (b *ScoopService) CreateScoop(c Collection, s Scoop) (bool, error) {
 	base, err := os.UserConfigDir()
@@ -394,10 +383,6 @@ func (b *ScoopService) OpenCollections() ([]Collection, error) {
 
 	return availCollections, nil
 }
-
-// TODO:
-// nearly identical to the CreateCollection function
-// should make one function for create and save (WriteCollection)
 
 func (b *ScoopService) SaveCollection(c Collection) (bool, error) {
 	base, err := os.UserConfigDir()

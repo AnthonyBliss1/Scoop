@@ -5,18 +5,29 @@
 
   const app = getAppState();
 
-  let { showRenameScoop = $bindable<boolean>() } = $props<{
-    showRenameScoop: boolean;
+  type Item = "Collection" | "Scoop";
+
+  let { showRename = $bindable<boolean>(), mode = $bindable<Item>() } = $props<{
+    showRename: boolean;
+    mode: Item;
   }>();
 
   let inputEl: HTMLInputElement | null = $state(null);
 
-  let newScoopName: string = $state(app.currentScoop.name);
+  let newName: string = $derived.by(() => {
+    if (mode === "Scoop") {
+      return app.currentScoop.name;
+    } else {
+      return app.currentCollection.name;
+    }
+  });
 
-  // TODO: add check to avoid duplicate scoop names
+  const renameFunc: () => void = $derived.by(() => {
+    return mode === "Scoop" ? renameScoop : renameCollection;
+  });
 
   async function renameScoop() {
-    if (newScoopName === "" || newScoopName === "temp") {
+    if (newName === "" || newName === "temp") {
       toast.error("Please enter a valid name");
       return;
     }
@@ -26,12 +37,39 @@
       const ok = await ScoopService.SaveScoop(app.currentScoop, app.currentCollection);
 
       if (ok) {
+        toast.success(`Renamed Request: ${app.currentScoop.name}`);
         console.log(`Renamed Request: ${app.currentScoop.name}`);
       }
     } catch (error) {
       console.error(error);
     } finally {
-      showRenameScoop = false;
+      showRename = false;
+    }
+  }
+
+  async function renameCollection() {
+    if (newName === "" || newName === "temp") {
+      toast.error("Please enter a valid name");
+      return;
+    }
+
+    const updatedCollection = {
+      ...app.currentCollection,
+      name: newName,
+    };
+
+    try {
+      const ok = await ScoopService.SaveCollection(updatedCollection);
+
+      if (ok) {
+        app.currentCollection = updatedCollection;
+        toast.success(`Renamed Collection: ${app.currentCollection.name}`);
+        console.log(`Renamed Collection: ${app.currentCollection.name}`);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      showRename = false;
     }
   }
 
@@ -43,7 +81,7 @@
     // need to create temp array
     // (crete new references for reactivity)
     let tempAllScoop = [...app.allScoops];
-    tempAllScoop[idx] = { ...tempAllScoop[idx], name: newScoopName };
+    tempAllScoop[idx] = { ...tempAllScoop[idx], name: newName };
 
     // overwrite the main arrays
     // (making sure to create new references)
@@ -51,25 +89,27 @@
     app.currentCollection = { ...app.currentCollection, scoops: tempAllScoop };
 
     // overwrite name of the currentScoop
-    app.currentScoop.name = newScoopName;
+    app.currentScoop.name = newName;
   }
 
   $effect(() => {
-    if (showRenameScoop === true) {
+    if (showRename === true) {
       inputEl?.focus();
     }
   });
 </script>
 
 <div class="border-border bg-background flex flex-col gap-5 rounded-sm border p-5">
-  <p class="flex items-center justify-center">Rename Scoop</p>
+  <p class="flex items-center justify-center">
+    {mode === "Scoop" ? "Rename Scoop" : "Rename Collection"}
+  </p>
   <input
     class="focus:ring-offset-background bg-background border-border h-8 w-full
     min-w-0 rounded-sm border px-2 text-green-300 shadow-md
     focus:ring-2 focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none md:min-w-[450px]"
-    bind:value={newScoopName}
+    bind:value={newName}
     bind:this={inputEl}
-    placeholder="Enter New Scoop Name..."
+    placeholder={mode === "Scoop" ? "Enter New Scoop Name..." : "Enter New Collection Name..."}
   />
 
   <div class="flex w-full flex-row items-center justify-center gap-10">
@@ -79,7 +119,7 @@
         text-sm hover:bg-green-400 hover:text-black focus:ring-2
         focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
-      onclick={renameScoop}>Rename</button
+      onclick={renameFunc}>Rename</button
     >
 
     <button
@@ -89,7 +129,7 @@
         focus:ring-green-400/20 focus:ring-offset-2 focus:outline-none
         disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-green-500"
       onclick={() => {
-        showRenameScoop = false;
+        showRename = false;
       }}>Cancel</button
     >
   </div>

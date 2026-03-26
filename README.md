@@ -43,6 +43,7 @@ Keybindings can also be view by clicking the 'I' (Info) button in the bottom rig
 |---------------------- | ----------------- |
 | Open Command Palette  | Shift + Ctrl + P  |
 | Go to Scoop           | Ctrl + Num        |
+| Rename Collection     | Shift + Ctrl + R  |
 | Rename Scoop          | Ctrl + R          |
 | Delete Collection     | Shift + Ctrl + D  |
 | Delete Scoop          | Ctrl + D          |

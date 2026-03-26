@@ -3,8 +3,11 @@
 </script>
 
 <Command.Root class="border-border rounded-sm  border shadow-md md:min-w-[450px]">
+  <div class="flex h-full w-full items-center justify-center">
+    <p class="my-2 text-sm text-green-500">Keybindings</p>
+  </div>
   <Command.List>
-    <Command.Group heading="Keybindings">
+    <Command.Group>
       <Command.Item value="Open Command Palette" class="aria-selected:bg-background">
         <span class="text-green-400">Open Command Palette</span>
         <Command.Shortcut class="text-green-500">Shift + Ctrl + P</Command.Shortcut>
@@ -13,6 +16,11 @@
       <Command.Item value="Go to Scoop" class="aria-selected:bg-background">
         <span class="text-green-400">Go to Scoop</span>
         <Command.Shortcut class="text-green-500">Ctrl + [Num]</Command.Shortcut>
+      </Command.Item>
+
+      <Command.Item value="Rename Collection" class="aria-selected:bg-background">
+        <span class="text-green-400">Rename Collection</span>
+        <Command.Shortcut class="text-green-500">Shift + Ctrl + R</Command.Shortcut>
       </Command.Item>
 
       <Command.Item value="Rename Scoop" class="aria-selected:bg-background">
