@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
-  import { ScoopService, Scoop } from "../../../../bindings/changeme";
+  import { ScoopService, Scoop, Collection } from "../../../../bindings/changeme";
   import { getAppState } from "$lib/store/AppState.svelte";
 
   const app = getAppState();
@@ -74,22 +74,34 @@
   }
 
   function replaceScoop() {
-    // find the index of the scoop to modify (currentScoop)
-    const idx = app.allScoops.findIndex((s: Scoop) => s.name === app.currentScoop.name);
+    // finding the index of the current scoop within allScoops
+    const idx = app.allScoops.findIndex((s: Scoop) => s.id === app.currentScoop.id);
     if (idx === -1) return;
 
-    // need to create temp array
-    // (crete new references for reactivity)
-    let tempAllScoop = [...app.allScoops];
-    tempAllScoop[idx] = { ...tempAllScoop[idx], name: newName };
+    // create new reference object with the new scoop name
+    const updatedScoop = new Scoop({
+      ...app.allScoops[idx],
+      name: newName,
+    });
 
-    // overwrite the main arrays
-    // (making sure to create new references)
-    app.allScoops = tempAllScoop;
-    app.currentCollection = { ...app.currentCollection, scoops: tempAllScoop };
+    // create new reference for allScoops and replace the index with the new scoop reference
+    const nextAllScoops = [...app.allScoops];
+    nextAllScoops[idx] = updatedScoop;
 
-    // overwrite name of the currentScoop
-    app.currentScoop.name = newName;
+    // find the scoop index within the collection.Scoops slice and update it
+    const cidx = app.currentCollection.scoops.findIndex((s: Scoop) => s.id === updatedScoop.id);
+    const nextCollectionScoops = [...app.currentCollection.scoops];
+    if (cidx !== -1) {
+      nextCollectionScoops[cidx] = updatedScoop;
+    }
+
+    // update the appState object
+    app.allScoops = nextAllScoops;
+    app.currentScoop = updatedScoop;
+    app.currentCollection = new Collection({
+      ...app.currentCollection,
+      scoops: nextCollectionScoops,
+    });
   }
 
   $effect(() => {

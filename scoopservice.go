@@ -458,9 +458,9 @@ func (b *ScoopService) SaveScoop(s Scoop, c Collection) (bool, error) {
 		return false, err
 	}
 
-	for _, scoop := range c.Scoops {
+	for i, scoop := range c.Scoops {
 		if scoop.ID == s.ID {
-			scoop = s
+			c.Scoops[i] = s
 		}
 	}
 
