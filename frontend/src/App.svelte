@@ -121,6 +121,9 @@
         appState.queryParams,
         appState.body,
       );
+
+      // the response will be received via an event emitted from the backend
+
       await ScoopService.SubmitRequest(appState.currentScoop);
     } catch (error) {
       console.error(error);
@@ -225,7 +228,18 @@
       appState.url = s.request.url;
       persistFormToRequest(appState.currentScoop);
 
-      loading = false;
+      // attempt to save the scoop
+      // (previously scoops were only saved on switching so this should be implemented)
+      try {
+        const ok = ScoopService.SaveScoop(appState.currentScoop, appState.currentCollection);
+        if (!ok) {
+          toast.error(`Failed to save Scoop: ${appState.currentScoop.name}`);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        loading = false;
+      }
     });
 
     onErrMsg = Events.On("errMsg", async (event: any) => {
