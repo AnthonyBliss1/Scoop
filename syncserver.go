@@ -87,6 +87,11 @@ func (b *SyncServer) OpenSyncServer() (s Server, err error) {
 		return s, err
 	}
 
+	// with fire if file is created but empty
+	if len(data) == 0 {
+		return s, nil
+	}
+
 	if err := json.Unmarshal(data, &s); err != nil {
 		return s, err
 	}
