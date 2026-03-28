@@ -143,12 +143,12 @@
 
     <!-->Visible Scoops (within the sliding window)<-->
     {#if appState.currentScoop.name !== "temp"}
-      {#each visibleScoops as scoop, i}
+      {#each visibleScoops as scoop, i (scoop.id)}
         <div class="flex flex-row gap-1">
-          <p class={appState.currentScoop.name === scoop.name ? "text-blue-500" : "text-green-400"}>
+          <p class={appState.currentScoop.id === scoop.id ? "text-blue-500" : "text-green-400"}>
             ({i + 1})
           </p>
-          <p class={appState.currentScoop.name === scoop.name ? "text-blue-500" : "text-green-400"}>
+          <p class={appState.currentScoop.id === scoop.id ? "text-blue-500" : "text-green-400"}>
             {scoop.name}
           </p>
         </div>
