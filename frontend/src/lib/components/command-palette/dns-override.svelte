@@ -23,9 +23,29 @@
   let ovToDelete: DNSOverride | null = $state(null);
   let deleting: boolean = $state(false);
 
+  function isDupeVariable(variable: string): boolean {
+    if (allOv === null) {
+      console.info("allOv is null");
+      return false;
+    }
+
+    for (const ov of allOv[0]) {
+      if (variable === ov.variable) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   async function createDNSOverride() {
     if (newVariable === "" || variableIPV4 === "") {
       toast.error("Please enter a valid variable and IPV4");
+      return;
+    }
+
+    if (isDupeVariable(newVariable)) {
+      toast.error(`'${newVariable}' already assigned an IPV4`);
       return;
     }
 

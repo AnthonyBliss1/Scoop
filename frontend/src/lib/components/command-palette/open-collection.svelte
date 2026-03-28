@@ -41,9 +41,9 @@
 
     {#if availCollections && availCollections.length > 0}
       <Command.Group heading="Collections">
-        {#each availCollections as c}
+        {#each availCollections as c (c.id)}
           <Command.Item
-            value={c.name}
+            value={c.id}
             onclick={() => {
               app.currentCollection = c;
               app.allScoops = c.scoops;
