@@ -1,10 +1,17 @@
-# Scoop (Active Development)
-Scoop is a simple REST API client built for testing and discovery.
-I built it as a personal tool that doesn't require accounts or logins.
-It’s also been a practical way to build experience with Typescript.
+<p align="center">
+  <img src="build/appicon.png" alt="Scoop Icon" width="128" />
+</p>
+
+<h1 align="center">Scoop (Active Development)</h1>
+
+<p align="center">
+  Scoop is a simple REST API client built for testing and discovery.
+  I built it as a personal tool that doesn't require accounts or logins.
+  It’s also been a practical way to build experience with Typescript.
+</p>
 
 ## How to Build
-Scoop requires the Wails framework to build
+Scoop requires Go and the Wails framework to build
 
 ### Set Up Wails 
 - Install Wails V3 (currently in alpha)
