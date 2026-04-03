@@ -262,6 +262,31 @@ export class Server {
   }
 }
 
+export class SyncData {
+  "versionNum": number;
+  "lastUpdated": string;
+
+  /** Creates a new SyncData instance. */
+  constructor($$source: Partial<SyncData> = {}) {
+    if (!("versionNum" in $$source)) {
+      this["versionNum"] = 0;
+    }
+    if (!("lastUpdated" in $$source)) {
+      this["lastUpdated"] = "";
+    }
+
+    Object.assign(this, $$source);
+  }
+
+  /**
+   * Creates a new SyncData instance from a string or object.
+   */
+  static createFrom($$source: any = {}): SyncData {
+    let $$parsedSource = typeof $$source === "string" ? JSON.parse($$source) : $$source;
+    return new SyncData($$parsedSource as Partial<SyncData>);
+  }
+}
+
 // Private type creation functions
 const $$createType0 = Scoop.createFrom;
 const $$createType1 = $Create.Array($$createType0);

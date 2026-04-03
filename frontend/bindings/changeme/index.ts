@@ -5,4 +5,14 @@ import * as ScoopService from "./scoopservice.js";
 import * as SyncServer from "./syncserver.js";
 export { ScoopService, SyncServer };
 
-export { Collection, DNSOverride, KV, Method, Request, Response, Scoop, Server } from "./models.js";
+export {
+  Collection,
+  DNSOverride,
+  KV,
+  Method,
+  Request,
+  Response,
+  Scoop,
+  Server,
+  SyncData,
+} from "./models.js";

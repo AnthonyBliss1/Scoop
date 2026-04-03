@@ -69,6 +69,11 @@ type DNSOverride struct {
 	IPV4     string `json:"ipv4"`
 }
 
+type SyncData struct {
+	VersionNum  int    `json:"versionNum"`
+	LastUpdated string `json:"lastUpdated"`
+}
+
 type ScoopService struct {
 	context context.Context
 }
@@ -579,6 +584,82 @@ func (b *ScoopService) OverwriteDNSOverride(ov []DNSOverride) (bool, error) {
 	}
 
 	if err := os.WriteFile(ovDir, j, 0o644); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (b *ScoopService) OpenSyncData() (sd SyncData, err error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		return SyncData{}, err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop")
+
+	// ensure /Scoop is created in UserConfigDir
+	if err := os.MkdirAll(scoopDir, 0o755); err != nil {
+		return SyncData{}, err
+	}
+
+	path := filepath.Join(scoopDir, "sync.json")
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err := os.WriteFile(path, nil, 0o644); err != nil {
+				return SyncData{}, err
+			}
+		} else {
+			return SyncData{}, err
+		}
+
+		data = []byte{}
+	}
+
+	if len(data) == 0 {
+		return SyncData{}, nil
+	}
+
+	if err := json.Unmarshal(data, &sd); err != nil {
+		return SyncData{}, err
+	}
+
+	return sd, nil
+}
+
+// So my thinking here is that this will only be used to update the local data from a server resp (why bodyBytes is the param)
+// On sucessfull POST to server, the server will send updated versionNum and LastUpdated back to the client in the response
+// which the client then takes and writes to the local dir
+
+func (b *ScoopService) OverwriteSyncData(bodyBytes []byte) (bool, error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		return false, err
+	}
+
+	scoopDir := filepath.Join(base, "Scoop")
+
+	// ensure /Scoop is created in UserConfigDir
+	if err := os.MkdirAll(scoopDir, 0o755); err != nil {
+		return false, err
+	}
+
+	path := filepath.Join(scoopDir, "sync.json")
+
+	data := SyncData{}
+
+	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+		return false, err
+	}
+
+	j, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return false, err
+	}
+
+	if err := os.WriteFile(path, j, 0o644); err != nil {
 		return false, err
 	}
 

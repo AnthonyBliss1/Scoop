@@ -19,6 +19,7 @@ type Server struct {
 type ServerPayload struct {
 	Collections []Collection  `json:"collections"`
 	DNS         []DNSOverride `json:"dns"`
+	SyncData    `json:"syncData"`
 }
 
 type SyncServer struct {
@@ -118,8 +119,15 @@ func (b *SyncServer) SendToServer(s Server) (ok bool, err error) {
 		return false, err
 	}
 
+	// grab syncData
+	sd, err := b.OpenSyncData()
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
 	// craft into a payload object
-	payload := ServerPayload{Collections: colls, DNS: dns}
+	payload := ServerPayload{Collections: colls, DNS: dns, SyncData: sd}
 
 	// marshal to bytes (for the req body)
 	data, err := json.Marshal(payload)
@@ -147,11 +155,17 @@ func (b *SyncServer) SendToServer(s Server) (ok bool, err error) {
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, _ := io.ReadAll(resp.Body)
+
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
 		err := fmt.Errorf("POST to server failed: %q", bodyBytes)
 		App.Event.Emit("errMsg", fmt.Sprint(err))
 		return false, err
+	}
+
+	// on sucessfull POST, write the resp data (updated SyncData) to the local dir
+	if _, err := b.OverwriteSyncData(bodyBytes); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
 	}
 
 	return true, nil
