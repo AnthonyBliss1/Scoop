@@ -21,6 +21,12 @@ export function CheckServerHealth(s: $models.Server): $CancellablePromise<boolea
   return $Call.ByID(696586741, s);
 }
 
+export function CheckServerSyncData(s: $models.Server): $CancellablePromise<$models.SyncData> {
+  return $Call.ByID(71591132, s).then(($result: any) => {
+    return $$createType0($result);
+  });
+}
+
 export function CreateCollection(c: $models.Collection): $CancellablePromise<boolean> {
   return $Call.ByID(3995263080, c);
 }
@@ -57,26 +63,26 @@ export function ModelIntializer(
   body: string,
 ): $CancellablePromise<$models.Request> {
   return $Call.ByID(3321767416, method, reqURL, headers, qParams, body).then(($result: any) => {
-    return $$createType0($result);
+    return $$createType1($result);
   });
 }
 
 export function OpenCollections(): $CancellablePromise<$models.Collection[]> {
   return $Call.ByID(151297045).then(($result: any) => {
-    return $$createType2($result);
+    return $$createType3($result);
   });
 }
 
 export function OpenDNSOverrides(): $CancellablePromise<[$models.DNSOverride[], string]> {
   return $Call.ByID(2530218684).then(($result: any) => {
-    $result[0] = $$createType4($result[0]);
+    $result[0] = $$createType5($result[0]);
     return $result;
   });
 }
 
 export function OpenSyncData(): $CancellablePromise<$models.SyncData> {
   return $Call.ByID(3580486699).then(($result: any) => {
-    return $$createType5($result);
+    return $$createType0($result);
   });
 }
 
@@ -115,10 +121,10 @@ export function SubmitRequest(s: $models.Scoop): $CancellablePromise<void> {
 }
 
 // Private type creation functions
-const $$createType0 = $models.Request.createFrom;
-const $$createType1 = $models.Collection.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = $models.DNSOverride.createFrom;
-const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = $models.SyncData.createFrom;
+const $$createType0 = $models.SyncData.createFrom;
+const $$createType1 = $models.Request.createFrom;
+const $$createType2 = $models.Collection.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = $models.DNSOverride.createFrom;
+const $$createType5 = $Create.Array($$createType4);
 const $$createType6 = $models.Server.createFrom;

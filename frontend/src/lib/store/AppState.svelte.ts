@@ -1,4 +1,12 @@
-import { Collection, KV, Method, Response, Scoop, Server } from "../../../bindings/changeme";
+import {
+  Collection,
+  KV,
+  Method,
+  Response,
+  Scoop,
+  Server,
+  SyncData,
+} from "../../../bindings/changeme";
 import { getContext, setContext } from "svelte";
 
 interface AppState {
@@ -22,6 +30,7 @@ export class AppStateClass implements AppState {
   currentScoop: Scoop = $state(new Scoop({ name: "temp" }));
   currentServer: Server = $state(new Server({ key: "", url: "" }));
   allScoops: Scoop[] = $state([]);
+  syncData: SyncData = $state(new SyncData());
 
   method: Method = $state(Method.Empty);
   url: string = $state("");
@@ -36,6 +45,7 @@ export class AppStateClass implements AppState {
     this.currentCollection = new Collection({ name: "temp" });
     this.currentScoop = new Scoop({ name: "temp" });
     this.allScoops = [];
+    this.syncData = new SyncData({ versionNum: 0 });
 
     this.method = Method.Empty;
     this.url = "";

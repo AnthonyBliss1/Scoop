@@ -230,6 +230,18 @@ func (b *SyncServer) GetFromServer(s Server) (ok bool, err error) {
 		return false, err
 	}
 
+	// save syncData
+	sdb, err := json.Marshal(payload.SyncData)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
+	if _, err := b.OverwriteSyncData(sdb); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return false, err
+	}
+
 	return true, nil
 }
 
@@ -254,4 +266,46 @@ func (b *SyncServer) CheckServerHealth(s Server) (ok bool, err error) {
 	}
 
 	return resp.StatusCode == http.StatusOK, nil
+}
+
+func (b *SyncServer) CheckServerSyncData(s Server) (data SyncData, err error) {
+	if s.URL == "" {
+		err = errors.New("No server URL found")
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return SyncData{}, err
+	}
+
+	req, err := http.NewRequest("GET", s.URL+"/data", nil)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return SyncData{}, err
+	}
+
+	req.Header.Add("X-API-Key", s.Key)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return SyncData{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err := fmt.Errorf("/data request failed: %q", resp.Status)
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return SyncData{}, err
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return SyncData{}, err
+	}
+	defer resp.Body.Close()
+
+	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+		App.Event.Emit("errMsg", fmt.Sprint(err))
+		return SyncData{}, err
+	}
+
+	return data, nil
 }
