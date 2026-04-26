@@ -2,7 +2,7 @@
   <img src="build/appicon.png" alt="Scoop Icon" width="128" />
 </p>
 
-<h1 align="center">Scoop (Active Development)</h1>
+<h1 align="center">Scoop</h1>
 
 <p align="center">
   Scoop is a simple REST API client built for testing and discovery.
